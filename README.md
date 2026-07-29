@@ -38,7 +38,7 @@ The solution significantly reduced the time required to complete daily operation
 
 ### Knowledge Center
 
-![Knowledge Center](Images/Centro_de_conocimiento.jpeg)
+![Knowledge Center](Images/Centro_ de_conocimiento.jpeg)
 
 A centralized repository that allows users to:
 
