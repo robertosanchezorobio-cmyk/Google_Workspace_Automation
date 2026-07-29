@@ -1,0 +1,2013 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <meta charset="UTF-8">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+  <style>
+    /* ── Variables de color ─────────────────────────────────── */
+    :root {
+      --navy:   #07112b;
+      --accent: #2563eb;
+      --teal:   #0ea5e9;
+      --amber:  #f59e0b;
+      --red:    #dc2626;
+      --green:  #059669;
+      --muted:  #94a3b8;
+      --text:   #0f172a;
+      --border: #dde3ed;
+    }
+
+    /* ── Reset y base ───────────────────────────────────────── */
+    * { margin:0; padding:0; box-sizing:border-box; }
+    html { height:100%; }
+    body {
+      font-family:'DM Sans',sans-serif;
+      background:#0b172e;
+      color:var(--text);
+      font-size:14px;
+      display:flex; flex-direction:column;
+      height:100%; overflow:hidden;
+    }
+
+    /* ── Header ─────────────────────────────────────────────── */
+    .hd {
+      background:linear-gradient(100deg,#04091a,#091528 55%,#0f1f3a);
+      padding:10px 18px; display:flex; align-items:center; gap:10px;
+      flex-shrink:0; border-bottom:1px solid rgba(255,255,255,.05);
+      box-shadow:0 2px 20px rgba(0,0,0,.5);
+    }
+    .hd-logo {
+      width:32px; height:32px;
+      background:linear-gradient(135deg,var(--accent),var(--teal));
+      border-radius:8px; display:flex; align-items:center; justify-content:center;
+    }
+    .hd-logo .material-icons-round { font-size:17px; color:#fff; }
+    .hd-info { flex:1; }
+    .hd-info h1 { font-size:16px; font-weight:700; color:#fff; letter-spacing:-.3px; }
+    .hd-info p  { font-size:10.5px; color:rgba(255,255,255,.4); margin-top:1px; }
+    .hd-upload {
+      background:linear-gradient(135deg,var(--accent),var(--teal)); border:none;
+      color:#fff; border-radius:7px; padding:7px 15px;
+      font-size:12px; font-weight:700; font-family:'DM Sans',sans-serif;
+      cursor:pointer; display:inline-flex; align-items:center; gap:5px;
+      transition:all .15s; box-shadow:0 2px 8px rgba(37,99,235,.35);
+    }
+    .hd-upload:hover { transform:translateY(-1px); box-shadow:0 4px 12px rgba(37,99,235,.5); }
+    .hd-upload .material-icons-round { font-size:16px; }
+    .hd-btn {
+      background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.1);
+      border-radius:6px; color:rgba(255,255,255,.55);
+      width:30px; height:30px;
+      display:flex; align-items:center; justify-content:center;
+      cursor:pointer; transition:all .15s; flex-shrink:0;
+    }
+    .hd-btn:hover { background:rgba(255,255,255,.18); color:#fff; }
+    .hd-btn.close:hover { background:rgba(220,38,38,.35); }
+    .hd-btn .material-icons-round { font-size:16px; }
+
+    /* ── Layout: sidebar | lista | preview ──────────────────── */
+    .main {
+      flex:1; min-height:0;
+      padding:16px 20px;
+      display:grid; grid-template-columns:205px 1fr 1.6fr;
+      grid-template-rows:minmax(0, 1fr); gap:16px;
+    }
+
+    /* ── Sidebar de navegación ──────────────────────────────── */
+    .sidebar {
+      display:flex; flex-direction:column; gap:3px;
+      min-height:0; overflow-y:auto; padding-right:2px;
+    }
+    .sidebar::-webkit-scrollbar { width:4px; }
+    .sidebar::-webkit-scrollbar-thumb { background:rgba(255,255,255,.12); border-radius:3px; }
+    .side-title {
+      font-size:9.5px; font-weight:700; color:rgba(255,255,255,.3);
+      text-transform:uppercase; letter-spacing:.9px;
+      padding:4px 12px 7px;
+    }
+    .side-item {
+      display:flex; align-items:center; gap:11px;
+      padding:11px 14px; border-radius:10px;
+      color:rgba(255,255,255,.62); font-size:13.5px; font-weight:600;
+      cursor:pointer; transition:all .15s; flex-shrink:0;
+    }
+    .side-item .material-icons-round { font-size:20px; opacity:.85; }
+    .side-item span.lbl {
+      flex:1; min-width:0;
+      white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    }
+    .side-item:hover { background:rgba(255,255,255,.07); color:#fff; }
+    .side-item.active {
+      background:linear-gradient(135deg,var(--accent),var(--teal));
+      color:#fff; box-shadow:0 2px 10px rgba(37,99,235,.35);
+    }
+    .side-item.fav.active { background:linear-gradient(135deg,#b45309,#f59e0b); }
+    .side-sep { height:1px; background:rgba(255,255,255,.08); margin:7px 10px; flex-shrink:0; }
+    .side-badge {
+      background:rgba(255,255,255,.14); color:#fff; font-size:9.5px; font-weight:800;
+      padding:1px 8px; border-radius:10px; flex-shrink:0;
+    }
+    .side-item.active .side-badge { background:rgba(255,255,255,.25); }
+
+    /* ── Columna de lista ───────────────────────────────────── */
+    .col-list { display:flex; flex-direction:column; gap:10px; min-height:0; min-width:0; }
+
+    /* Migas de pan (ruta de carpetas) */
+    .crumbs { display:flex; align-items:center; gap:3px; flex-wrap:wrap; flex-shrink:0; font-size:11.5px; }
+    .crumb {
+      color:rgba(255,255,255,.55); font-weight:600; padding:3px 8px;
+      border-radius:6px; cursor:pointer; transition:all .15s;
+      max-width:160px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    }
+    .crumb:hover { background:rgba(255,255,255,.08); color:#fff; }
+    .crumb.cur { color:#fff; background:rgba(255,255,255,.10); cursor:default; }
+    .crumb-sep { color:rgba(255,255,255,.25); font-size:11px; }
+
+    .search-box { position:relative; flex-shrink:0; }
+    .search-box .material-icons-round {
+      position:absolute; left:12px; top:50%; transform:translateY(-50%);
+      font-size:18px; color:var(--muted); pointer-events:none;
+    }
+    .search-box input {
+      width:100%; padding:12px 12px 12px 40px;
+      border:1.5px solid var(--border); border-radius:10px;
+      font-size:14px; font-family:'DM Sans',sans-serif;
+      color:var(--text); background:#fff;
+    }
+    .search-box input:focus {
+      outline:none; border-color:var(--accent);
+      box-shadow:0 0 0 3px rgba(37,99,235,.1);
+    }
+
+    .list {
+      flex:1; min-height:0; overflow-y:auto;
+      display:flex; flex-direction:column; gap:9px;
+      padding-right:3px;
+    }
+    .list::-webkit-scrollbar { width:5px; }
+    .list::-webkit-scrollbar-thumb { background:rgba(255,255,255,.12); border-radius:3px; }
+
+    /* ── Tarjeta de recurso / carpeta ───────────────────────── */
+    .card {
+      background:#fff; border-radius:11px; padding:15px 17px;
+      border:1px solid #e2e8f0; cursor:pointer;
+      display:flex; gap:14px; align-items:flex-start;
+      transition:all .15s; border-left:3px solid transparent;
+      position:relative; flex-shrink:0;
+    }
+    .card:hover {
+      border-left-color:var(--accent);
+      box-shadow:0 3px 12px rgba(0,0,0,.12); transform:translateY(-1px);
+    }
+    .card.sel {
+      border-left-color:var(--accent);
+      background:#eff6ff;
+      box-shadow:0 0 0 2px rgba(37,99,235,.35), 0 4px 14px rgba(37,99,235,.12);
+    }
+    .card.sel .card-title { color:var(--accent); }
+    .card-ico {
+      width:44px; height:44px; flex-shrink:0; border-radius:10px;
+      display:flex; align-items:center; justify-content:center;
+    }
+    .card-ico .material-icons-round { font-size:23px; color:#fff; }
+    .ico-pdf    { background:linear-gradient(135deg,#b91c1c,#dc2626); }
+    .ico-guia   { background:linear-gradient(135deg,#065f46,#059669); }
+    .ico-link   { background:linear-gradient(135deg,#1e3a5f,#2b5797); }
+    .ico-plant  { background:linear-gradient(135deg,#92400e,#d97706); }
+    .ico-video  { background:linear-gradient(135deg,#6d28d9,#8b5cf6); }
+    .ico-doc    { background:linear-gradient(135deg,#475569,#64748b); }
+    .ico-folder { background:linear-gradient(135deg,#b45309,#f59e0b); }
+    .card-body { flex:1; min-width:0; }
+    .card-title {
+      font-size:14.5px; font-weight:700; color:var(--navy); margin-bottom:3px;
+      display:flex; align-items:center; gap:5px; line-height:1.3;
+      min-width:0; overflow-wrap:anywhere; word-break:break-word;
+    }
+    .card-title .fav-star { font-size:16px; color:var(--amber); flex-shrink:0; }
+    .card-desc {
+      font-size:12px; color:#64748b; line-height:1.45;
+      overflow:hidden; text-overflow:ellipsis; overflow-wrap:anywhere; word-break:break-word;
+      display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical;
+    }
+    .card-meta { display:flex; align-items:center; gap:8px; margin-top:6px; }
+    .card-tag {
+      background:#eef2ff; color:#3730a3; padding:2px 10px;
+      border-radius:10px; font-size:10px; font-weight:700;
+    }
+    .card-tag.folder { background:#fef3c7; color:#92400e; }
+    .card-date { font-size:10.5px; color:#b0bcc9; }
+
+    /* ── Novedades: barra superior con leyenda de colores ───── */
+    .nv-top { display:flex; align-items:center; gap:12px; flex-wrap:wrap; flex-shrink:0; margin-bottom:2px; }
+    .nv-title { font-size:13.5px; font-weight:700; color:rgba(255,255,255,.75); }
+    .nv-add {
+      margin-left:auto;
+      background:linear-gradient(135deg,var(--accent),var(--teal)); border:none; color:#fff;
+      border-radius:9px; padding:9px 15px; font-size:12.5px; font-weight:700;
+      font-family:'DM Sans',sans-serif; cursor:pointer; flex-shrink:0;
+      display:inline-flex; align-items:center; gap:6px;
+    }
+    .nv-add .material-icons-round { font-size:17px; }
+
+    /* Tarjeta compacta de novedad (borde izquierdo = urgencia) */
+    .nv-card {
+      background:#fff; border-radius:11px; padding:12px 15px 12px 14px;
+      border:1px solid #e2e8f0; border-left:5px solid #64748b;
+      cursor:pointer; display:flex; gap:13px; align-items:center;
+      transition:all .15s; position:relative; flex-shrink:0;
+    }
+    .nv-card:hover { box-shadow:0 3px 12px rgba(0,0,0,.12); transform:translateY(-1px); }
+    .nv-card:hover .card-actions { opacity:1; }
+    .nv-card.sel { background:#eff6ff; box-shadow:0 0 0 2px rgba(37,99,235,.35); }
+    .nv-card.st-perm { border-left-color:#cbd5e1; }
+    .nv-card.st-norm { border-left-color:#cbd5e1; }
+    .nv-card.st-warn { border-left-color:var(--amber); }
+    .nv-card.st-crit { border-left-color:var(--red); }
+    .nv-card.st-crit::before {
+      content:""; position:absolute; inset:-1px; border-radius:11px; pointer-events:none;
+      animation:nvPulse 1.7s ease-in-out infinite;
+    }
+    @keyframes nvPulse {
+      0%,100% { box-shadow:0 0 0 0 rgba(220,38,38,0); }
+      50%     { box-shadow:0 0 0 3px rgba(220,38,38,.22); }
+    }
+    .nv-main { flex:1; min-width:0; }
+    .nv-line { display:flex; align-items:center; gap:8px; margin-bottom:5px; }
+    .nv-chip {
+      display:inline-block; padding:2px 10px; border-radius:8px;
+      font-size:10px; font-weight:800; letter-spacing:.4px;
+      background:#0f2a4a; color:#fff;
+    }
+    .nv-texto {
+      font-size:13.5px; color:#1e293b; line-height:1.5;
+      overflow-wrap:anywhere; word-break:break-word;
+      display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;
+    }
+    .nv-meta { display:flex; align-items:center; gap:8px; margin-top:7px; flex-wrap:wrap; }
+    .nv-meta span { font-size:12px; color:#64748b; font-weight:500; }
+    .nv-badge {
+      margin-left:auto; flex-shrink:0;
+      font-size:11px; font-weight:800; padding:3px 11px; border-radius:20px; white-space:nowrap;
+    }
+    .nv-badge.st-perm { background:#f1f5f9; color:#475569; }
+    .nv-badge.st-norm { background:#f1f5f9; color:#475569; }
+    .nv-badge.st-warn { background:#fef3c7; color:#a16207; }
+    .nv-badge.st-crit { background:#fee2e2; color:#dc2626; }
+    .nv-thumb {
+      width:54px; height:54px; flex-shrink:0; border-radius:9px; object-fit:cover;
+      border:1px solid #e2e8f0;
+    }
+    /* Novedad sin imagen: el texto llena la vista previa, con scroll y tamaño fijo */
+    .nv-full { width:100%; height:100%; overflow-y:auto; padding:24px 26px; text-align:left; }
+    .nv-full::-webkit-scrollbar { width:5px; }
+    .nv-full::-webkit-scrollbar-thumb { background:#c1cdd9; border-radius:3px; }
+    .nv-full .nv-chip { margin-bottom:14px; }
+    .nv-full-txt {
+      font-size:15px; line-height:1.7; color:#334155; white-space:pre-wrap;
+      overflow-wrap:anywhere; word-break:break-word;
+    }
+
+    /* Acciones de tarjeta (aparecen al pasar el mouse) */
+    .card-actions {
+      position:absolute; top:8px; right:9px;
+      display:flex; gap:3px; opacity:0; transition:opacity .15s;
+      background:rgba(255,255,255,.94); border-radius:8px; padding:3px;
+      box-shadow:0 1px 6px rgba(0,0,0,.14);
+    }
+    .card:hover .card-actions { opacity:1; }
+    .ca {
+      background:none; border:none; width:27px; height:27px;
+      border-radius:6px; cursor:pointer; color:#64748b;
+      display:flex; align-items:center; justify-content:center;
+      transition:all .12s;
+    }
+    .ca:hover { background:#eef2ff; color:var(--accent); }
+    .ca.star-on { color:var(--amber); }
+    .ca.danger:hover { background:#fef2f2; color:var(--red); }
+    .ca .material-icons-round { font-size:16px; }
+
+    /* Estados vacíos / carga */
+    .empty, .loading {
+      text-align:center; color:rgba(255,255,255,.4);
+      font-size:12px; padding:44px 16px;
+    }
+    .empty .material-icons-round, .loading .material-icons-round {
+      font-size:42px; display:block; margin:0 auto 10px; opacity:.3;
+    }
+    .empty .cta {
+      margin-top:14px; background:linear-gradient(135deg,var(--accent),var(--teal));
+      border:none; color:#fff; border-radius:8px; padding:10px 19px;
+      font-size:12px; font-weight:700; font-family:'DM Sans',sans-serif;
+      cursor:pointer; display:inline-flex; align-items:center; gap:6px;
+    }
+    .empty .cta .material-icons-round {
+      font-size:16px; display:inline; margin:0; opacity:1;
+    }
+    .sp {
+      width:22px; height:22px; margin:0 auto 12px;
+      border:2.5px solid rgba(255,255,255,.15); border-top-color:var(--accent);
+      border-radius:50%; animation:spin .6s linear infinite;
+    }
+    @keyframes spin { to { transform:rotate(360deg); } }
+
+    /* ── Vista previa ───────────────────────────────────────── */
+    .preview {
+      background:#fff; border-radius:11px;
+      border:1px solid #e2e8f0; box-shadow:0 1px 6px rgba(0,0,0,.07);
+      display:flex; flex-direction:column; min-height:0; min-width:0; overflow:hidden;
+    }
+    .pv-head {
+      padding:13px 16px; border-bottom:1px solid #eef2f7;
+      display:flex; align-items:center; gap:10px; flex-shrink:0;
+    }
+    .pv-head .material-icons-round { font-size:19px; color:var(--accent); }
+    .pv-head-info { flex:1; min-width:0; }
+    .pv-head h2 {
+      font-size:15px; font-weight:700; color:var(--navy);
+      white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    }
+    .pv-head p { font-size:11px; color:var(--muted); margin-top:1px; }
+    .pv-open, .pv-ghost {
+      border:none; border-radius:7px; padding:9px 14px;
+      font-size:12px; font-weight:600; font-family:'DM Sans',sans-serif;
+      cursor:pointer; display:inline-flex; align-items:center; gap:5px;
+      flex-shrink:0; transition:all .15s; white-space:nowrap;
+    }
+    .pv-open { background:linear-gradient(135deg,#07112b,#1a3464); color:#fff; }
+    .pv-open:hover { transform:translateY(-1px); box-shadow:0 3px 10px rgba(7,17,43,.3); }
+    .pv-open .material-icons-round { font-size:15px; color:#fff; }
+    .pv-ghost { background:#fff; color:#475569; border:1.5px solid var(--border); }
+    .pv-ghost:hover { background:#f1f5f9; }
+    .pv-ghost .material-icons-round { font-size:15px; }
+
+    .pv-body { flex:1; min-height:0; position:relative; background:#f8fafc; }
+    .pv-body iframe { width:100%; height:100%; border:none; display:none; }
+    .pv-loading {
+      position:absolute; inset:0; display:none;
+      align-items:center; justify-content:center; background:#f8fafc;
+    }
+    .pv-loading .sp { border-color:#e2e8f0; border-top-color:var(--accent); margin:0; }
+    .pv-placeholder {
+      position:absolute; inset:0;
+      display:flex; flex-direction:column; align-items:center; justify-content:center;
+      text-align:center; color:var(--muted); padding:24px;
+    }
+    .pv-placeholder .material-icons-round { font-size:50px; opacity:.25; margin-bottom:10px; }
+    .pv-placeholder h3 { font-size:16px; color:#475569; font-weight:600; margin-bottom:4px; }
+    .pv-placeholder p { font-size:13.5px; max-width:340px; line-height:1.55; }
+    .pv-link-chip {
+      margin-top:12px; font-family:'DM Mono',monospace; font-size:10.5px;
+      color:#3730a3; background:#eef2ff; border:1px solid #c7d2fe;
+      padding:7px 12px; border-radius:7px; word-break:break-all; max-width:90%;
+    }
+
+    /* Descripción debajo de la vista previa */
+    .pv-desc {
+      flex-shrink:0; max-height:170px; overflow-y:auto;
+      padding:12px 16px; border-top:1px solid #eef2f7; background:#f8fafc;
+    }
+    .pv-desc::-webkit-scrollbar { width:4px; }
+    .pv-desc::-webkit-scrollbar-thumb { background:#c1cdd9; border-radius:3px; }
+    .pv-desc-label {
+      font-size:9px; font-weight:800; color:#64748b; text-transform:uppercase;
+      letter-spacing:.6px; margin-bottom:5px; display:flex; align-items:center; gap:5px;
+    }
+    .pv-desc-label .material-icons-round { font-size:13px; color:var(--accent); }
+    .pv-desc p { font-size:13.5px; color:#334155; line-height:1.6; white-space:pre-wrap;
+      overflow-wrap:anywhere; word-break:break-word; }
+
+    /* ── Modales (base compartida) ──────────────────────────── */
+    .modal-bg {
+      position:fixed; inset:0; background:rgba(4,9,26,.7);
+      display:none; align-items:center; justify-content:center; z-index:50;
+      backdrop-filter:blur(2px);
+    }
+    .modal-bg.open { display:flex; }
+    .modal {
+      background:#fff; border-radius:14px; width:460px; max-width:92vw;
+      max-height:92vh; overflow-y:auto; box-shadow:0 20px 60px rgba(0,0,0,.5);
+    }
+    .modal-head {
+      background:linear-gradient(100deg,#04091a,#0f1f3a);
+      padding:14px 18px; display:flex; align-items:center; gap:9px;
+      border-radius:14px 14px 0 0; position:sticky; top:0; z-index:2;
+    }
+    .modal-head .material-icons-round { color:#60a5fa; font-size:19px; }
+    .modal-head h2 { flex:1; color:#fff; font-size:14px; font-weight:700; }
+    .modal-head .x {
+      background:rgba(255,255,255,.08); border:none; color:rgba(255,255,255,.6);
+      width:26px; height:26px; border-radius:6px; cursor:pointer;
+      display:flex; align-items:center; justify-content:center;
+    }
+    .modal-head .x:hover { background:rgba(220,38,38,.4); color:#fff; }
+    .modal-body { padding:16px 18px; }
+    .modal-body label {
+      display:block; font-size:9px; font-weight:700; color:#64748b;
+      text-transform:uppercase; letter-spacing:.5px; margin-bottom:3px;
+    }
+    .modal-body input, .modal-body select, .modal-body textarea {
+      width:100%; padding:9px 12px; border:1.5px solid var(--border);
+      border-radius:7px; font-size:12.5px; font-family:'DM Sans',sans-serif;
+      color:var(--text); background:#f8fafc; margin-bottom:11px;
+    }
+    .modal-body textarea { resize:vertical; min-height:56px; }
+    .modal-body input:focus, .modal-body select:focus, .modal-body textarea:focus {
+      outline:none; border-color:var(--accent); background:#fff;
+      box-shadow:0 0 0 3px rgba(37,99,235,.1);
+    }
+    .modal-body input:disabled { background:#f1f5f9; color:#94a3b8; cursor:not-allowed; }
+    .modal-body select {
+      cursor:pointer; appearance:none;
+      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='%2364748b'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+      background-repeat:no-repeat; background-position:right 10px center;
+    }
+
+    /* Chip de carpeta destino en los modales */
+    .destino-chip {
+      display:flex; align-items:center; gap:6px; margin-bottom:12px;
+      font-size:11px; color:#3730a3; background:#eef2ff;
+      border:1px solid #c7d2fe; border-radius:7px; padding:7px 11px;
+    }
+    .destino-chip .material-icons-round { font-size:14px; color:var(--accent); }
+    .destino-chip b { font-weight:700; word-break:break-all; }
+
+    /* Conmutador Archivo / Enlace */
+    .mode-row { display:flex; gap:6px; margin-bottom:13px; }
+    .mode-btn {
+      flex:1; padding:9px; border:1.5px solid var(--border); border-radius:8px;
+      background:#f8fafc; color:#64748b; font-size:12px; font-weight:700;
+      font-family:'DM Sans',sans-serif; cursor:pointer;
+      display:inline-flex; align-items:center; justify-content:center; gap:5px;
+      transition:all .15s;
+    }
+    .mode-btn .material-icons-round { font-size:16px; }
+    .mode-btn.active {
+      background:linear-gradient(135deg,var(--accent),var(--teal));
+      border-color:transparent; color:#fff;
+      box-shadow:0 2px 8px rgba(37,99,235,.3);
+    }
+
+    /* Zona de arrastrar / elegir archivos */
+    .drop {
+      border:2px dashed #c7d7f5; border-radius:10px; background:#f0f5ff;
+      padding:19px; text-align:center; cursor:pointer; margin-bottom:11px;
+      transition:all .15s;
+    }
+    .drop:hover, .drop.over { border-color:var(--accent); background:#e8f0ff; }
+    .drop .material-icons-round { font-size:33px; color:var(--accent); opacity:.7; }
+    .drop p { font-size:12px; color:#475569; margin-top:5px; }
+
+    /* Cola de archivos elegidos */
+    .queue { margin-bottom:11px; display:flex; flex-direction:column; gap:4px; }
+    .q-item {
+      display:flex; align-items:center; gap:7px;
+      background:#f8fafc; border:1px solid var(--border); border-radius:7px;
+      padding:7px 10px; font-size:11.5px;
+    }
+    .q-item .material-icons-round { font-size:15px; color:var(--accent); flex-shrink:0; }
+    .q-name { flex:1; min-width:0; font-weight:600; color:var(--navy);
+      white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .q-size { color:#94a3b8; font-size:10px; flex-shrink:0; }
+    .q-x {
+      background:none; border:none; color:#94a3b8; cursor:pointer;
+      width:19px; height:19px; border-radius:4px; flex-shrink:0;
+      display:flex; align-items:center; justify-content:center;
+    }
+    .q-x:hover { background:#fef2f2; color:var(--red); }
+    .q-x .material-icons-round { font-size:14px; color:inherit; }
+
+    .modal-foot { display:flex; gap:9px; margin-top:4px; }
+    .modal-foot .btn {
+      flex:1; padding:11px; border:none; border-radius:8px;
+      font-size:12.5px; font-weight:700; font-family:'DM Sans',sans-serif;
+      cursor:pointer; display:inline-flex; align-items:center;
+      justify-content:center; gap:6px; transition:all .15s;
+    }
+    .btn-cancel { background:#f1f5f9; color:#475569; border:1.5px solid var(--border) !important; }
+    .btn-cancel:hover { background:#e2e8f0; }
+    .btn-up { background:linear-gradient(135deg,var(--accent),var(--teal)); color:#fff; }
+    .btn-up:hover { transform:translateY(-1px); box-shadow:0 3px 12px rgba(37,99,235,.45); }
+    .btn-up:disabled { opacity:.5; cursor:not-allowed; transform:none; box-shadow:none; }
+    .btn-del { background:linear-gradient(135deg,#991b1b,#dc2626); color:#fff; }
+    .btn-del:hover { transform:translateY(-1px); box-shadow:0 3px 12px rgba(220,38,38,.4); }
+    .btn-del:disabled { opacity:.5; cursor:not-allowed; transform:none; box-shadow:none; }
+    .btn .material-icons-round { font-size:16px; }
+    .mini-sp {
+      width:14px; height:14px; border:2px solid rgba(255,255,255,.4);
+      border-top-color:#fff; border-radius:50%; animation:spin .6s linear infinite;
+    }
+
+    /* Modal de confirmación de borrado */
+    .confirm-txt { font-size:12.5px; color:#334155; line-height:1.6; margin-bottom:12px; }
+    .confirm-txt strong { color:var(--navy); }
+    .chk-row {
+      display:flex; align-items:center; gap:8px; margin-bottom:13px;
+      background:#fffbeb; border:1px solid #fde68a; border-radius:8px; padding:10px 12px;
+    }
+    .chk-row input { width:auto; margin:0; cursor:pointer; }
+    .chk-row label {
+      margin:0; font-size:11px; color:#78350f; text-transform:none;
+      letter-spacing:0; font-weight:600; cursor:pointer;
+    }
+
+    /* ── Toast ──────────────────────────────────────────────── */
+    .toast {
+      position:fixed; bottom:10px; left:12px; right:12px;
+      padding:10px 14px; border-radius:8px; color:#fff;
+      font-size:12px; font-weight:500; display:none;
+      align-items:center; gap:7px; z-index:99;
+      box-shadow:0 6px 22px rgba(0,0,0,.3);
+    }
+    .toast.success { background:linear-gradient(135deg,#047857,#059669); }
+    .toast.error   { background:linear-gradient(135deg,#991b1b,#dc2626); }
+    .toast.info    { background:linear-gradient(135deg,#07112b,#1a3464); }
+    .toast.warn    { background:linear-gradient(135deg,#92400e,#d97706); }
+    .toast .material-icons-round { font-size:16px; }
+  </style>
+</head>
+<body>
+
+<!-- ── Header ──────────────────────────────────────────────── -->
+<div class="hd">
+  <div class="hd-logo"><span class="material-icons-round">folder_special</span></div>
+  <div class="hd-info">
+    <h1>Centro de Conocimiento SAP</h1>
+    <p>CENIT Transporte &nbsp;&middot;&nbsp; Guías, plantillas, enlaces y documentos</p>
+  </div>
+  <button class="hd-upload" onclick="abrirSubida()" title="Agregar archivo o enlace en la carpeta actual">
+    <span class="material-icons-round">add</span>Agregar
+  </button>
+  <button class="hd-btn" onclick="abrirNuevaCarpeta()" title="Nueva carpeta dentro de la carpeta actual">
+    <span class="material-icons-round">create_new_folder</span>
+  </button>
+  <button class="hd-btn" onclick="cargar(false);cargarNovedades(true)" title="Actualizar desde la hoja">
+    <span class="material-icons-round">refresh</span>
+  </button>
+  <button class="hd-btn" onclick="abrirHoja()" title="Abrir la hoja Repositorio (Archivo B)">
+    <span class="material-icons-round">table_view</span>
+  </button>
+  <button class="hd-btn close" onclick="cerrar()" title="Cerrar">
+    <span class="material-icons-round">close</span>
+  </button>
+</div>
+
+<div class="main">
+
+  <!-- ── Sidebar: Inicio, Favoritos y carpetas de la raíz ──── -->
+  <aside class="sidebar" id="sidebar"></aside>
+
+  <!-- ── Columna central: ruta + búsqueda + lista ─────────── -->
+  <div class="col-list">
+    <div class="crumbs" id="crumbs"></div>
+    <div class="search-box">
+      <span class="material-icons-round">search</span>
+      <input type="text" id="busqueda" placeholder="Buscar en todo el repositorio… (atajo: /)" oninput="render()">
+    </div>
+    <div class="list" id="list">
+      <div class="loading"><div class="sp"></div>Cargando repositorio…</div>
+    </div>
+  </div>
+
+  <!-- ── Columna derecha: vista previa ────────────────────── -->
+  <div class="preview">
+    <div class="pv-head">
+      <span class="material-icons-round">visibility</span>
+      <div class="pv-head-info">
+        <h2 id="pvTitle">Vista previa</h2>
+        <p id="pvSub">Selecciona un recurso de la lista</p>
+      </div>
+      <button class="pv-ghost" id="pvFicha" style="display:none;" onclick="irAFicha()"
+              title="Abrir la fila de este recurso en el Archivo B">
+        <span class="material-icons-round">edit_note</span>Ficha
+      </button>
+      <button class="pv-open" id="pvOpen" style="display:none;" onclick="abrirEnNueva()">
+        <span class="material-icons-round">open_in_new</span><span id="pvOpenTxt">Abrir</span>
+      </button>
+    </div>
+    <div class="pv-body">
+      <iframe id="pvFrame"></iframe>
+      <div class="pv-loading" id="pvLoading"><div class="sp"></div></div>
+      <div class="pv-placeholder" id="pvPlaceholder">
+        <span class="material-icons-round">touch_app</span>
+        <h3>Nada seleccionado</h3>
+        <p>Haz clic en cualquier recurso de la lista para verlo aquí.</p>
+      </div>
+    </div>
+    <div class="pv-desc" id="pvDesc" style="display:none;">
+      <div class="pv-desc-label"><span class="material-icons-round">notes</span>Descripción</div>
+      <p id="pvDescText"></p>
+    </div>
+  </div>
+
+</div>
+
+<!-- ── Modal: agregar recurso (archivo o enlace) ───────────── -->
+<div class="modal-bg" id="modalBg">
+  <div class="modal">
+    <div class="modal-head">
+      <span class="material-icons-round">add_circle</span>
+      <h2>Agregar al repositorio</h2>
+      <button class="x" onclick="cerrarSubida()">
+        <span class="material-icons-round" style="font-size:15px;">close</span>
+      </button>
+    </div>
+    <div class="modal-body">
+
+      <!-- Carpeta donde se guardará (la carpeta actual del panel) -->
+      <div class="destino-chip">
+        <span class="material-icons-round">folder</span>
+        Se guardará en:&nbsp;<b id="upDestino">Inicio</b>
+      </div>
+
+      <!-- Conmutador de modo -->
+      <div class="mode-row">
+        <button class="mode-btn active" id="modeArchivo" onclick="setModo('archivo')">
+          <span class="material-icons-round">upload_file</span>Archivo
+        </button>
+        <button class="mode-btn" id="modeEnlace" onclick="setModo('enlace')">
+          <span class="material-icons-round">link</span>Enlace
+        </button>
+      </div>
+
+      <!-- Modo archivo: zona de arrastre + cola -->
+      <div id="secArchivo">
+        <div class="drop" id="drop" onclick="document.getElementById('fileInput').click()">
+          <span class="material-icons-round">cloud_upload</span>
+          <p id="dropText">Arrastra archivos aquí o haz clic para elegirlos<br>
+             <span style="font-size:10px;color:#94a3b8;">PDF, Word, imágenes… · máx. 20 MB c/u · puedes elegir varios<br>
+             Los <b>videos</b> van por el modo Enlace (súbelos a Drive).</span></p>
+        </div>
+        <input type="file" id="fileInput" multiple style="display:none;" onchange="archivosElegidos(this.files)">
+        <div class="queue" id="queue"></div>
+      </div>
+
+      <!-- Modo enlace: URL -->
+      <div id="secEnlace" style="display:none;">
+        <div style="display:flex;align-items:flex-start;gap:8px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:9px 11px;margin-bottom:10px;">
+          <span class="material-icons-round" style="font-size:18px;color:#2563eb;flex-shrink:0;">movie</span>
+          <span style="font-size:11px;color:#1e3a5f;line-height:1.5;">
+            Para <b>videos</b> o archivos de más de 20&nbsp;MB: súbelos a Google&nbsp;Drive y pega aquí su enlace. Se reproducen en la vista previa del panel.<br>
+            <button type="button" onclick="abrirCarpetaDrive()" style="display:inline-flex;align-items:center;gap:4px;margin-top:6px;padding:5px 10px;border:none;border-radius:6px;background:linear-gradient(135deg,#1e3a5f,#2b5797);color:#fff;font-size:10px;font-weight:600;font-family:'Inter',sans-serif;cursor:pointer;">
+              <span class="material-icons-round" style="font-size:13px;">folder_open</span>Abrir carpeta de Drive
+            </button>
+          </span>
+        </div>
+        <label>URL o ID de Drive *</label>
+        <input type="text" id="upEnlace" placeholder="https://…  o  ID de un archivo de Drive">
+      </div>
+
+      <label>Título *</label>
+      <input type="text" id="upTitulo" placeholder="Nombre con el que aparecerá">
+
+      <label>Categoría</label>
+      <input type="text" id="upCategoria" list="catList" placeholder="Elige o escribe una nueva…">
+      <datalist id="catList"></datalist>
+
+      <label>Tipo</label>
+      <select id="upTipo">
+        <option>PDF</option>
+        <option>Video</option>
+        <option>Guía</option>
+        <option>Plantilla</option>
+        <option>Documento</option>
+        <option>Link</option>
+      </select>
+
+      <label>Descripción</label>
+      <textarea id="upDesc" placeholder="Breve descripción del recurso (opcional)"></textarea>
+
+      <div class="modal-foot">
+        <button class="btn btn-cancel" onclick="cerrarSubida()">Cancelar</button>
+        <button class="btn btn-up" id="btnUp" onclick="enviar()">
+          <span class="material-icons-round">check</span>Agregar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Modal: nueva carpeta ────────────────────────────────── -->
+<div class="modal-bg" id="folderBg">
+  <div class="modal" style="width:380px;">
+    <div class="modal-head">
+      <span class="material-icons-round">create_new_folder</span>
+      <h2>Nueva carpeta</h2>
+      <button class="x" onclick="cerrarNuevaCarpeta()">
+        <span class="material-icons-round" style="font-size:15px;">close</span>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="destino-chip">
+        <span class="material-icons-round">folder</span>
+        Se creará dentro de:&nbsp;<b id="nfDestino">Inicio</b>
+      </div>
+      <label>Nombre de la carpeta *</label>
+      <input type="text" id="nfNombre" placeholder="Ej. Guías Basis">
+      <div class="modal-foot">
+        <button class="btn btn-cancel" onclick="cerrarNuevaCarpeta()">Cancelar</button>
+        <button class="btn btn-up" id="btnCrearCarpeta" onclick="crearCarpetaUI()">
+          <span class="material-icons-round">check</span>Crear
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Modal: nueva novedad ────────────────────────────────── -->
+<div class="modal-bg" id="nvBg">
+  <div class="modal" style="width:420px;">
+    <div class="modal-head">
+      <span class="material-icons-round">campaign</span>
+      <h2>Nueva novedad</h2>
+      <button class="x" onclick="cerrarNuevaNovedad()">
+        <span class="material-icons-round" style="font-size:15px;">close</span>
+      </button>
+    </div>
+    <div class="modal-body">
+      <label>Módulo</label>
+      <input type="text" id="nvModulo" list="modList" placeholder="General">
+      <datalist id="modList">
+        <option value="General"><option value="MM"><option value="PY">
+        <option value="CPI"><option value="SEGA"><option value="BW">
+        <option value="BI"><option value="HCM"><option value="SSFF">
+      </datalist>
+
+      <label>Novedad *</label>
+      <textarea id="nvTexto" placeholder="Ej. MM: Asignar únicamente a Oscar Flórez"></textarea>
+
+      <label>Imagen (opcional, máx. 10 MB)</label>
+      <input type="file" id="nvImgInput" accept="image/*" style="display:none;"
+             onchange="nvImgElegida(this.files)">
+      <div class="queue" id="nvImgInfo"></div>
+      <button class="btn btn-cancel" style="width:100%;padding:9px;margin-bottom:11px;"
+              onclick="document.getElementById('nvImgInput').click()">
+        <span class="material-icons-round">image</span>Elegir imagen
+      </button>
+
+      <label>Duración en días (vacío = permanente)</label>
+      <input type="number" id="nvDias" min="0" step="1" placeholder="Vacío = permanente">
+
+      <label>Comunicador</label>
+      <input type="text" id="nvComunicador" placeholder="Quién dio la instrucción (ej. Tania Nieto)">
+
+      <label>Fuente</label>
+      <input type="text" id="nvFuente" list="fuenteList"
+             placeholder="Correo, WhatsApp, una persona, un número…">
+      <datalist id="fuenteList">
+        <option value="Correo"><option value="WhatsApp">
+        <option value="Reunión"><option value="Otro">
+      </datalist>
+
+      <div class="modal-foot">
+        <button class="btn btn-cancel" onclick="cerrarNuevaNovedad()">Cancelar</button>
+        <button class="btn btn-up" id="btnCrearNv" onclick="crearNovedadUI()">
+          <span class="material-icons-round">check</span>Publicar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Modal: confirmar eliminación (recurso o carpeta) ────── -->
+<div class="modal-bg" id="confirmBg">
+  <div class="modal" style="width:390px;">
+    <div class="modal-head">
+      <span class="material-icons-round" style="color:#fca5a5;">delete_forever</span>
+      <h2>Eliminar</h2>
+      <button class="x" onclick="cerrarConfirm()">
+        <span class="material-icons-round" style="font-size:15px;">close</span>
+      </button>
+    </div>
+    <div class="modal-body">
+      <p class="confirm-txt" id="delTexto"></p>
+      <div class="chk-row" id="delChkRow" style="display:none;">
+        <input type="checkbox" id="delChk">
+        <label for="delChk">Enviar también el archivo de Drive a la papelera</label>
+      </div>
+      <div class="modal-foot">
+        <button class="btn btn-cancel" onclick="cerrarConfirm()">Cancelar</button>
+        <button class="btn btn-del" id="btnDel" onclick="confirmarEliminar()">
+          <span class="material-icons-round">delete</span>Eliminar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast">
+  <span class="material-icons-round" id="ti">check_circle</span>
+  <span id="tm"></span>
+</div>
+
+<script>
+// ════════════════════════════════════════════════════════════
+// ESTADO
+// ════════════════════════════════════════════════════════════
+var CARPETAS  = [];       // carpetas leídas del Archivo B
+var RECURSOS  = [];       // recursos leídos del Archivo B
+var vista     = "carpetas";  // "carpetas" (explorador) | "favs" (favoritos)
+var carpetaActual = "";   // "" = Inicio (raíz)
+var URL_B     = "";       // URL del Archivo B (para el botón Ficha)
+var GID_REPO  = 0;        // gid de la pestaña Repositorio en el Archivo B
+var URL_DRIVE = "";       // URL de la carpeta raíz de Drive (para "Abrir Drive")
+var FAVS      = {};       // favoritos { clave: true } en localStorage
+var filaSel   = 0;        // fila del recurso mostrado en el preview
+var urlAbrir  = "";       // URL del recurso seleccionado (botón Abrir)
+var COLA      = [];       // archivos pendientes de subir [{file}]
+var modoModal = "archivo";
+var pendienteEliminar = null;   // { tipo:"recurso"|"carpeta", ... }
+var MAX_MB    = 20;       // límite por archivo del selector — pasado esto, google.script.run
+                           // se cuelga. Videos y archivos pesados van por el modo Enlace (Drive).
+
+var CATS_BASE = ["Guías / Instructivos", "Plantillas / Formatos",
+                 "PDFs / Documentos", "Enlaces / Portales"];
+
+var NOVEDADES = [];       // novedades activas leídas del Archivo B
+var NV_IMG    = null;     // imagen elegida en el modal de novedad
+var NV_MAX_MB = 10;       // límite de la imagen de una novedad
+
+// ════════════════════════════════════════════════════════════
+// UTILIDADES
+// ════════════════════════════════════════════════════════════
+function lsGet(k)   { try { return localStorage.getItem(k) || ""; } catch(e) { return ""; } }
+function lsSet(k,v) { try { localStorage.setItem(k, v); } catch(e) {} }
+
+function esc(t) { var d = document.createElement("div"); d.textContent = t || ""; return d.innerHTML; }
+
+// Normaliza para búsquedas: minúsculas y sin tildes ("Guía" = "guia")
+function norm(t) {
+  return (t || "").toString().toLowerCase()
+    .replace(/[áàä]/g,"a").replace(/[éèë]/g,"e").replace(/[íìï]/g,"i")
+    .replace(/[óòö]/g,"o").replace(/[úùü]/g,"u").replace(/ñ/g,"n");
+}
+
+// Clave estable de un recurso para favoritos
+function favKey(r) { return r.titulo + "|" + r.enlace; }
+
+function showToast(msg, tipo) {
+  var el = document.getElementById("toast");
+  document.getElementById("tm").textContent = msg;
+  document.getElementById("ti").textContent =
+    ({ success:"check_circle", error:"error", info:"info", warn:"warning" })[tipo] || "info";
+  el.className = "toast " + (tipo || "info");
+  el.style.display = "flex";
+  clearTimeout(showToast._t);
+  showToast._t = setTimeout(function() { el.style.display = "none"; }, 2800);
+}
+
+// Clasifica el tipo de recurso en un ícono y color (tarjetas)
+function claseTipo(tipo) {
+  var t = norm(tipo);
+  if (t.indexOf("pdf") !== -1)    return { cls:"ico-pdf",   ico:"picture_as_pdf" };
+  if (t.indexOf("guia") !== -1)   return { cls:"ico-guia",  ico:"menu_book" };
+  if (t.indexOf("video") !== -1)  return { cls:"ico-video", ico:"movie" };
+  if (t.indexOf("link") !== -1 || t.indexOf("enlace") !== -1)
+                                  return { cls:"ico-link",  ico:"public" };
+  if (t.indexOf("plant") !== -1 || t.indexOf("formato") !== -1)
+                                  return { cls:"ico-plant", ico:"description" };
+  return { cls:"ico-doc", ico:"insert_drive_file" };
+}
+
+// Detecta el tipo por la extensión del archivo (PDF o Video); "" si no aplica.
+function tipoPorExtension(nombre) {
+  if (/\.pdf$/i.test(nombre)) return "PDF";
+  if (/\.(mp4|mov|webm|avi|mkv|m4v)$/i.test(nombre)) return "Video";
+  return "";
+}
+
+// Extrae el ID de un archivo de Drive desde varias formas de enlace
+function extraerDriveId(enlace) {
+  if (!enlace) return "";
+  var m = enlace.match(/\/d\/([-\w]{20,})/) || enlace.match(/[?&]id=([-\w]{20,})/);
+  if (m) return m[1];
+  if (/^[-\w]{20,}$/.test(enlace)) return enlace;   // ID suelto
+  return "";
+}
+
+// URL de vista previa incrustable (iframe), o "" si no aplica
+function urlPreview(enlace) {
+  if (!enlace) return "";
+  if (enlace.indexOf("docs.google.com") !== -1) return enlace.replace(/\/edit.*$/, "/preview");
+  var id = extraerDriveId(enlace);
+  return id ? "https://drive.google.com/file/d/" + id + "/preview" : "";
+}
+
+// URL para abrir en pestaña nueva
+function urlAbrirNueva(enlace) {
+  if (!enlace) return "";
+  if (/^https?:\/\//i.test(enlace)) return enlace;
+  var id = extraerDriveId(enlace);
+  return id ? "https://drive.google.com/file/d/" + id + "/view" : "";
+}
+
+// Abre una URL en pestaña nueva (compatible con el sandbox de Apps Script)
+function abrirUrlNueva(url) {
+  var a = document.createElement("a");
+  a.href = url; a.target = "_blank"; a.rel = "noopener";
+  document.body.appendChild(a); a.click(); a.remove();
+}
+
+// ── Carpetas: helpers de navegación ─────────────────────────
+function buscarCarpeta(id) {
+  for (var i = 0; i < CARPETAS.length; i++) {
+    if (CARPETAS[i].id === id) return CARPETAS[i];
+  }
+  return null;
+}
+
+// Ruta desde la raíz hasta la carpeta actual (para breadcrumb y modales)
+function rutaActual() {
+  var ruta = [], id = carpetaActual, guard = 0;
+  while (id && guard++ < 50) {
+    var c = buscarCarpeta(id);
+    if (!c) break;
+    ruta.unshift(c);
+    id = c.idPadre;
+  }
+  return ruta;
+}
+
+function textoRuta() {
+  var nombres = rutaActual().map(function(c) { return c.nombre; });
+  return ["Inicio"].concat(nombres).join(" / ");
+}
+
+// ════════════════════════════════════════════════════════════
+// CARGA — pinta la copia local al instante y refresca del servidor
+// ════════════════════════════════════════════════════════════
+function cargar(silencioso) {
+  if (!silencioso) {
+    document.getElementById("list").innerHTML =
+      '<div class="loading"><div class="sp"></div>Cargando repositorio…</div>';
+  }
+  google.script.run
+    .withSuccessHandler(function(datos) {
+      datos    = datos || {};
+      CARPETAS = datos.carpetas || [];
+      RECURSOS = datos.recursos || [];
+      URL_B    = datos.urlArchivoB || "";
+      GID_REPO = datos.gidRepositorio || 0;
+      URL_DRIVE = datos.urlCarpetaDrive || "";
+      lsSet("ccCache", JSON.stringify(datos));
+      // Si la carpeta actual ya no existe (la borró otro usuario), volver a Inicio.
+      if (carpetaActual && !buscarCarpeta(carpetaActual)) carpetaActual = "";
+      construirSidebar();
+      render();
+    })
+    .withFailureHandler(function(e) {
+      document.getElementById("list").innerHTML =
+        '<div class="empty"><span class="material-icons-round">error_outline</span>'
+        + esc(e.message) + '</div>';
+      showToast("Error al cargar", "error");
+    })
+    .cargarDatosCC();
+}
+
+// ════════════════════════════════════════════════════════════
+// NAVEGACIÓN — Inicio | Favoritos | carpetas
+// ════════════════════════════════════════════════════════════
+function navegarA(id) {
+  vista = "carpetas";
+  carpetaActual = id || "";
+  document.getElementById("busqueda").value = "";
+  construirSidebar();
+  render();
+}
+
+function verFavoritos() {
+  vista = "favs";
+  construirSidebar();
+  render();
+}
+
+// ════════════════════════════════════════════════════════════
+// SIDEBAR — Inicio | ★ Favoritos | carpetas de la raíz
+// ════════════════════════════════════════════════════════════
+function construirSidebar() {
+  var sb = document.getElementById("sidebar");
+  sb.innerHTML = '<div class="side-title">Navegación</div>';
+
+  sb.appendChild(crearItemSidebar("Inicio", "home",
+    vista === "carpetas" && carpetaActual === "",
+    function() { navegarA(""); }, ""));
+  sb.appendChild(crearItemSidebar("Favoritos", "star",
+    vista === "favs",
+    verFavoritos, "fav"));
+
+  // Novedades, con contador de activas
+  var nv = document.createElement("div");
+  nv.className = "side-item" + (vista === "novedades" ? " active" : "");
+  nv.innerHTML = '<span class="material-icons-round">campaign</span>'
+    + '<span class="lbl">Novedades</span>'
+    + (NOVEDADES.length ? '<span class="side-badge">' + NOVEDADES.length + '</span>' : '');
+  nv.onclick = verNovedades;
+  sb.appendChild(nv);
+
+  var raiz = CARPETAS.filter(function(c) { return !c.idPadre; })
+    .sort(function(a, b) { return a.nombre.localeCompare(b.nombre, "es"); });
+
+  if (raiz.length) {
+    var sep = document.createElement("div");
+    sep.className = "side-sep";
+    sb.appendChild(sep);
+    raiz.forEach(function(c) {
+      sb.appendChild(crearItemSidebar(c.nombre, "folder",
+        vista === "carpetas" && carpetaActual === c.id,
+        function() { navegarA(c.id); }, ""));
+    });
+  }
+}
+
+function crearItemSidebar(etiqueta, icono, activo, onclick, extraCls) {
+  var el = document.createElement("div");
+  el.className = "side-item " + extraCls + (activo ? " active" : "");
+  el.innerHTML = '<span class="material-icons-round">' + icono + '</span>'
+    + '<span class="lbl">' + esc(etiqueta) + '</span>';
+  el.onclick = onclick;
+  return el;
+}
+
+// ════════════════════════════════════════════════════════════
+// MIGAS DE PAN — Inicio › carpeta › subcarpeta
+// ════════════════════════════════════════════════════════════
+function renderCrumbs() {
+  var el = document.getElementById("crumbs");
+  if (vista !== "carpetas") { el.style.display = "none"; return; }
+  el.style.display = "flex";
+  el.innerHTML = "";
+
+  var mk = function(nombre, id, esActual) {
+    var s = document.createElement("span");
+    s.className = "crumb" + (esActual ? " cur" : "");
+    s.textContent = nombre;
+    s.title = nombre;
+    if (!esActual) s.onclick = function() { navegarA(id); };
+    return s;
+  };
+
+  var ruta = rutaActual();
+  el.appendChild(mk("Inicio", "", !ruta.length));
+  ruta.forEach(function(c, i) {
+    var sep = document.createElement("span");
+    sep.className = "crumb-sep";
+    sep.textContent = "›";
+    el.appendChild(sep);
+    el.appendChild(mk(c.nombre, c.id, i === ruta.length - 1));
+  });
+}
+
+// ════════════════════════════════════════════════════════════
+// RENDER — explorador (subcarpetas + archivos), búsqueda o favoritos
+// ════════════════════════════════════════════════════════════
+function coincideBusqueda(r, q) {
+  return !q || norm(r.titulo + " " + r.descripcion + " " + r.categoria + " " + r.tipo).indexOf(q) !== -1;
+}
+
+function render() {
+  var q    = norm(document.getElementById("busqueda").value.trim());
+  var cont = document.getElementById("list");
+  renderCrumbs();
+
+  // La búsqueda y los favoritos no aplican a las novedades (vista aparte)
+  document.querySelector(".search-box").style.display =
+    (vista === "novedades") ? "none" : "block";
+  if (vista === "novedades") { renderNovedades(cont); return; }
+
+  // Vista Favoritos: lista plana de favoritos (la búsqueda aplica encima)
+  if (vista === "favs") {
+    var favs = RECURSOS.filter(function(r) { return FAVS[favKey(r)] && coincideBusqueda(r, q); })
+      .sort(function(a, b) { return a.titulo.localeCompare(b.titulo, "es"); });
+    if (!favs.length) {
+      cont.innerHTML = '<div class="empty"><span class="material-icons-round">star_border</span>'
+        + 'Aún no tienes favoritos.<br>Márcalos con la estrella de cada tarjeta.</div>';
+      return;
+    }
+    cont.innerHTML = "";
+    favs.forEach(function(r) { cont.appendChild(crearCard(r)); });
+    return;
+  }
+
+  // Con texto de búsqueda: resultados de TODO el repositorio (lista plana)
+  if (q) {
+    var res = RECURSOS.filter(function(r) { return coincideBusqueda(r, q); })
+      .sort(function(a, b) { return a.titulo.localeCompare(b.titulo, "es"); });
+    if (!res.length) {
+      cont.innerHTML = '<div class="empty"><span class="material-icons-round">search_off</span>Sin resultados</div>';
+      return;
+    }
+    cont.innerHTML = "";
+    res.forEach(function(r) { cont.appendChild(crearCard(r)); });
+    return;
+  }
+
+  // Explorador: primero las subcarpetas de la carpeta actual, luego sus archivos
+  var subs = CARPETAS.filter(function(c) { return (c.idPadre || "") === carpetaActual; })
+    .sort(function(a, b) { return a.nombre.localeCompare(b.nombre, "es"); });
+  var recs = RECURSOS.filter(function(r) { return (r.idCarpeta || "") === carpetaActual; })
+    .sort(function(a, b) { return a.titulo.localeCompare(b.titulo, "es"); });
+
+  if (!subs.length && !recs.length) {
+    if (carpetaActual === "" && !RECURSOS.length && !CARPETAS.length) {
+      cont.innerHTML =
+        '<div class="empty"><span class="material-icons-round">folder_open</span>'
+        + 'El repositorio está vacío.<br>'
+        + '<button class="cta" onclick="abrirSubida()">'
+        + '<span class="material-icons-round">add</span>Agregar primer recurso</button></div>';
+    } else {
+      cont.innerHTML =
+        '<div class="empty"><span class="material-icons-round">folder_open</span>'
+        + 'Carpeta vacía.<br>Usa <strong>Agregar</strong> para subir archivos aquí,<br>o crea una subcarpeta.</div>';
+    }
+    return;
+  }
+
+  cont.innerHTML = "";
+  subs.forEach(function(c) { cont.appendChild(crearCardCarpeta(c)); });
+  recs.forEach(function(r) { cont.appendChild(crearCard(r)); });
+}
+
+// Tarjeta de una carpeta (clic = entrar)
+function crearCardCarpeta(c) {
+  var card = document.createElement("div");
+  card.className = "card";
+  card.innerHTML =
+    '<div class="card-ico ico-folder"><span class="material-icons-round">folder</span></div>'
+    + '<div class="card-body">'
+    +   '<div class="card-title">' + esc(c.nombre) + '</div>'
+    +   '<div class="card-meta"><span class="card-tag folder">Carpeta</span></div>'
+    + '</div>'
+    + '<div class="card-actions">'
+    +   '<button class="ca danger" data-act="del" title="Eliminar carpeta (solo si está vacía)">'
+    +     '<span class="material-icons-round">delete</span></button>'
+    + '</div>';
+
+  card.onclick = function() { navegarA(c.id); };
+  card.querySelector(".ca").onclick = function(ev) {
+    ev.stopPropagation();
+    pedirEliminarCarpeta(c);
+  };
+  return card;
+}
+
+// Construye la tarjeta de un recurso con sus acciones rápidas
+function crearCard(r) {
+  var ti    = claseTipo(r.tipo);
+  var esFav = !!FAVS[favKey(r)];
+  var card  = document.createElement("div");
+  card.className = "card" + (r.fila === filaSel ? " sel" : "");
+  card.innerHTML =
+    '<div class="card-ico ' + ti.cls + '"><span class="material-icons-round">' + ti.ico + '</span></div>'
+    + '<div class="card-body">'
+    +   '<div class="card-title">'
+    +     (esFav ? '<span class="material-icons-round fav-star">star</span>' : '')
+    +     esc(r.titulo)
+    +   '</div>'
+    +   (r.descripcion ? '<div class="card-desc">' + esc(r.descripcion) + '</div>' : '')
+    +   '<div class="card-meta">'
+    +     '<span class="card-tag">' + esc(r.categoria) + '</span>'
+    +     (r.fecha ? '<span class="card-date">' + esc(r.fecha) + '</span>' : '')
+    +   '</div>'
+    + '</div>'
+    + '<div class="card-actions">'
+    +   '<button class="ca ' + (esFav ? "star-on" : "") + '" data-act="fav" title="Favorito">'
+    +     '<span class="material-icons-round">' + (esFav ? "star" : "star_border") + '</span></button>'
+    +   '<button class="ca" data-act="copy" title="Copiar enlace">'
+    +     '<span class="material-icons-round">link</span></button>'
+    +   '<button class="ca" data-act="open" title="Abrir en pestaña nueva">'
+    +     '<span class="material-icons-round">open_in_new</span></button>'
+    +   '<button class="ca danger" data-act="del" title="Eliminar">'
+    +     '<span class="material-icons-round">delete</span></button>'
+    + '</div>';
+
+  card.onclick = function() { seleccionar(r, card); };
+
+  // Acciones rápidas (no seleccionan la tarjeta)
+  card.querySelectorAll(".ca").forEach(function(btn) {
+    btn.onclick = function(ev) {
+      ev.stopPropagation();
+      var act = btn.getAttribute("data-act");
+      if (act === "fav")  toggleFav(r);
+      if (act === "copy") copiarEnlace(r);
+      if (act === "open") {
+        var u = urlAbrirNueva(r.enlace);
+        u ? abrirUrlNueva(u) : showToast("Este recurso no tiene enlace", "warn");
+      }
+      if (act === "del")  pedirEliminar(r);
+    };
+  });
+  return card;
+}
+
+// ════════════════════════════════════════════════════════════
+// FAVORITOS Y COPIAR ENLACE
+// ════════════════════════════════════════════════════════════
+function toggleFav(r) {
+  var k = favKey(r);
+  if (FAVS[k]) delete FAVS[k];
+  else FAVS[k] = true;
+  lsSet("repoFavs", JSON.stringify(FAVS));
+  render();
+}
+
+function copiarEnlace(r) {
+  var u = urlAbrirNueva(r.enlace);
+  if (!u) { showToast("Este recurso no tiene enlace", "warn"); return; }
+  navigator.clipboard.writeText(u)
+    .then(function() { showToast("✓ Enlace copiado — pégalo donde lo necesites", "success"); })
+    .catch(function() { showToast("No se pudo copiar", "error"); });
+}
+
+// ════════════════════════════════════════════════════════════
+// SELECCIÓN Y VISTA PREVIA
+// ════════════════════════════════════════════════════════════
+function seleccionar(r, card) {
+  var prev = document.querySelector(".card.sel");
+  if (prev) prev.classList.remove("sel");
+  card.classList.add("sel");
+  filaSel = r.fila;
+
+  document.getElementById("pvTitle").textContent = r.titulo;
+  document.getElementById("pvSub").textContent   = r.categoria + (r.tipo ? "  ·  " + r.tipo : "")
+    + (r.fecha ? "  ·  " + r.fecha : "");
+  document.getElementById("pvFicha").style.display = "inline-flex";
+
+  var descBox = document.getElementById("pvDesc");
+  if (r.descripcion) {
+    document.getElementById("pvDescText").textContent = r.descripcion;
+    descBox.style.display = "block";
+  } else {
+    descBox.style.display = "none";
+  }
+
+  var frame   = document.getElementById("pvFrame");
+  var ph      = document.getElementById("pvPlaceholder");
+  var loading = document.getElementById("pvLoading");
+  var btnOpen = document.getElementById("pvOpen");
+
+  urlAbrir = urlAbrirNueva(r.enlace);
+
+  if (urlAbrir) {
+    var esDrive = urlAbrir.indexOf("drive.google.com") !== -1 || urlAbrir.indexOf("docs.google.com") !== -1;
+    document.getElementById("pvOpenTxt").textContent = esDrive ? "Abrir en Drive" : "Abrir enlace";
+    btnOpen.style.display = "inline-flex";
+  } else {
+    btnOpen.style.display = "none";
+  }
+
+  var pv = urlPreview(r.enlace);
+  if (pv) {
+    ph.style.display      = "none";
+    loading.style.display = "flex";
+    frame.style.display   = "block";
+    frame.onload = function() { loading.style.display = "none"; };
+    frame.src = pv;
+  } else {
+    frame.style.display   = "none";
+    frame.src             = "";
+    loading.style.display = "none";
+    ph.style.display      = "flex";
+    if (r.enlace) {
+      ph.innerHTML =
+        '<span class="material-icons-round">open_in_new</span>'
+        + '<h3>Enlace externo</h3>'
+        + '<p>Este recurso no se puede previsualizar aquí. Usa el botón <strong>Abrir enlace</strong>.</p>'
+        + '<div class="pv-link-chip">' + esc(r.enlace) + '</div>';
+    } else {
+      ph.innerHTML =
+        '<span class="material-icons-round">link_off</span>'
+        + '<h3>Sin enlace</h3>'
+        + '<p>Esta ficha no tiene enlace ni ID de Drive. Pulsa <strong>Ficha</strong> para completarla en el Archivo B.</p>';
+    }
+  }
+}
+
+// Abre la fila del recurso en el Archivo B (pestaña nueva).
+// Los datos ya no viven en esta hoja, así que se abre por URL.
+function irAFicha() {
+  if (!filaSel) return;
+  if (!URL_B) { showToast("Actualiza el panel e inténtalo de nuevo", "warn"); return; }
+  abrirUrlNueva(URL_B + "#gid=" + GID_REPO + "&range=A" + filaSel);
+}
+
+// Abre la pestaña Repositorio del Archivo B (pestaña nueva).
+function abrirHoja() {
+  if (!URL_B) { showToast("Actualiza el panel e inténtalo de nuevo", "warn"); return; }
+  abrirUrlNueva(URL_B + "#gid=" + GID_REPO);
+}
+
+function abrirEnNueva() {
+  if (urlAbrir) abrirUrlNueva(urlAbrir);
+  else showToast("Este recurso no tiene enlace", "warn");
+}
+
+function limpiarPreview() {
+  filaSel  = 0;
+  urlAbrir = "";
+  document.getElementById("pvTitle").textContent = "Vista previa";
+  document.getElementById("pvSub").textContent   = "Selecciona un recurso de la lista";
+  document.getElementById("pvFicha").style.display = "none";
+  document.getElementById("pvOpen").style.display  = "none";
+  document.getElementById("pvDesc").style.display  = "none";
+  var frame = document.getElementById("pvFrame");
+  frame.style.display = "none"; frame.src = "";
+  document.getElementById("pvLoading").style.display = "none";
+  var ph = document.getElementById("pvPlaceholder");
+  ph.style.display = "flex";
+  ph.innerHTML = '<span class="material-icons-round">touch_app</span>'
+    + '<h3>Nada seleccionado</h3>'
+    + '<p>Haz clic en cualquier recurso de la lista para verlo aquí.</p>';
+}
+
+// ════════════════════════════════════════════════════════════
+// NOVEDADES — mensajes cortos por módulo, con imagen y vigencia
+// ════════════════════════════════════════════════════════════
+function cargarNovedades(silencioso) {
+  google.script.run
+    .withSuccessHandler(function(items) {
+      NOVEDADES = items || [];
+      construirSidebar();
+      if (vista === "novedades") render();
+    })
+    .withFailureHandler(function(e) {
+      if (!silencioso) showToast("Error al cargar novedades: " + e.message, "error");
+    })
+    .listarNovedades();
+}
+
+function verNovedades() {
+  vista = "novedades";
+  construirSidebar();
+  render();
+}
+
+function renderNovedades(cont) {
+  cont.innerHTML = "";
+
+  // Barra superior: título + botón para publicar.
+  var top = document.createElement("div");
+  top.className = "nv-top";
+  top.innerHTML =
+    '<div class="nv-title">Tablón de novedades</div>'
+    + '<button class="nv-add" id="btnNuevaNv"><span class="material-icons-round">add_comment</span>Nueva novedad</button>';
+  top.querySelector("#btnNuevaNv").onclick = abrirNuevaNovedad;
+  cont.appendChild(top);
+
+  if (!NOVEDADES.length) {
+    var e = document.createElement("div");
+    e.className = "empty";
+    e.innerHTML = '<span class="material-icons-round">campaign</span>No hay novedades activas.';
+    cont.appendChild(e);
+    return;
+  }
+
+  // Orden: las más próximas a vencer primero; las permanentes al final.
+  NOVEDADES.slice()
+    .sort(function(a, b) {
+      var d = estadoNovedad(a).orden - estadoNovedad(b).orden;
+      return d !== 0 ? d : (a.modulo || "").localeCompare(b.modulo || "", "es");
+    })
+    .forEach(function(n) { cont.appendChild(crearCardNovedad(n)); });
+}
+
+// Estado de vigencia → color, texto y orden. Solo se resaltan las que están
+// por borrarse: amarillo si faltan ≤5 h y rojo si falta ≤1 h. El resto, neutro.
+function estadoNovedad(n) {
+  if (!n.expiraMs) return { cls:"st-perm", txt:"Permanente", orden:3 };
+  var rest = n.expiraMs - Date.now();
+  if (rest <= 0) return { cls:"st-crit", txt:"Se borrará pronto", orden:0 };
+  var min = Math.max(1, Math.floor(rest / 60000)),
+      h   = Math.floor(rest / 3600000),
+      d   = Math.floor(rest / 86400000);
+  var txt = "Se borrará en " + (d >= 1 ? d + " d" : (h >= 1 ? h + " h" : min + " min"));
+  if (rest <= 3600000)     return { cls:"st-crit", txt:txt, orden:0 };   // ≤ 1 hora  → rojo
+  if (rest <= 5 * 3600000) return { cls:"st-warn", txt:txt, orden:1 };   // ≤ 5 horas → amarillo
+  return { cls:"st-norm", txt:txt, orden:2 };                            // resto     → neutro
+}
+
+// Tarjeta compacta de una novedad. El color del borde y del badge indica la
+// urgencia. Si no tiene imagen, el texto ocupa el ancho (sin hueco reservado).
+function crearCardNovedad(n) {
+  var e = estadoNovedad(n);
+  var card = document.createElement("div");
+  card.className = "nv-card " + e.cls;
+  card.innerHTML =
+    '<div class="nv-main">'
+    +  '<div class="nv-line">'
+    +    '<span class="nv-chip">' + esc(n.modulo) + '</span>'
+    +    '<span class="nv-badge ' + e.cls + '">' + e.txt + '</span>'
+    +  '</div>'
+    +  '<div class="nv-texto">' + esc(n.texto) + '</div>'
+    +  '<div class="nv-meta">'
+    +    (n.comunicador ? '<span>' + esc(n.comunicador) + '</span>' : '')
+    +    (n.fuente ? '<span>· ' + esc(n.fuente) + '</span>' : '')
+    +    (n.publicada ? '<span>· ' + esc(n.publicada) + '</span>' : '')
+    +  '</div>'
+    + '</div>'
+    + (n.imagenId
+        ? '<img class="nv-thumb" src="https://drive.google.com/thumbnail?id=' + n.imagenId + '&sz=w200" alt="">'
+        : '')
+    + '<div class="card-actions">'
+    +   '<button class="ca danger" title="Eliminar novedad">'
+    +     '<span class="material-icons-round">delete</span></button>'
+    + '</div>';
+
+  card.onclick = function() { verNovedadPreview(n, card); };
+  card.querySelector(".ca").onclick = function(ev) {
+    ev.stopPropagation();
+    pedirEliminarNovedad(n);
+  };
+  return card;
+}
+
+// Vista previa de una novedad: imagen grande (si tiene) o el texto completo
+// bien legible ocupando el panel (sin imagen no se deja hueco).
+function verNovedadPreview(n, card) {
+  var prev = document.querySelector(".nv-card.sel");
+  if (prev) prev.classList.remove("sel");
+  card.classList.add("sel");
+  filaSel = 0;
+
+  var e = estadoNovedad(n);
+  document.getElementById("pvTitle").textContent = "Novedad — " + n.modulo;
+  document.getElementById("pvSub").textContent =
+    [e.txt, n.comunicador, n.fuente, n.publicada].filter(Boolean).join("  ·  ");
+  document.getElementById("pvFicha").style.display = "none";
+
+  var frame   = document.getElementById("pvFrame");
+  var ph      = document.getElementById("pvPlaceholder");
+  var loading = document.getElementById("pvLoading");
+  var btnOpen = document.getElementById("pvOpen");
+  var descBox = document.getElementById("pvDesc");
+
+  if (n.imagenId) {
+    urlAbrir = urlAbrirNueva(n.imagenId);
+    document.getElementById("pvOpenTxt").textContent = "Abrir en Drive";
+    btnOpen.style.display = "inline-flex";
+    document.getElementById("pvDescText").textContent = n.texto;
+    descBox.style.display = "block";
+    ph.style.display      = "none";
+    loading.style.display = "flex";
+    frame.style.display   = "block";
+    frame.onload = function() { loading.style.display = "none"; };
+    frame.src = urlPreview(n.imagenId);
+  } else {
+    urlAbrir = "";
+    btnOpen.style.display = "none";
+    descBox.style.display = "none";
+    frame.style.display   = "none";
+    frame.src             = "";
+    loading.style.display = "none";
+    ph.style.display      = "flex";
+    ph.innerHTML =
+      '<div class="nv-full">'
+      + '<span class="nv-chip">' + esc(n.modulo) + '</span>'
+      + '<p class="nv-full-txt">' + esc(n.texto) + '</p>'
+      + '</div>';
+  }
+}
+
+function pedirEliminarNovedad(n) {
+  pendienteEliminar = { tipo: "novedad", id: n.id, texto: n.texto };
+  document.getElementById("delTexto").innerHTML =
+    'Se eliminará la novedad <strong>' + esc(n.texto.slice(0, 60)) + (n.texto.length > 60 ? "…" : "") + '</strong>.';
+  document.getElementById("delChkRow").style.display = "none";
+  document.getElementById("delChk").checked = false;
+  document.getElementById("confirmBg").classList.add("open");
+}
+
+// ── Modal Nueva novedad ─────────────────────────────────────
+function abrirNuevaNovedad() {
+  NV_IMG = null;
+  renderNvImg();
+  document.getElementById("nvModulo").value      = "";
+  document.getElementById("nvTexto").value       = "";
+  document.getElementById("nvDias").value        = "";
+  document.getElementById("nvComunicador").value = "";
+  document.getElementById("nvFuente").value      = "";
+  document.getElementById("nvImgInput").value    = "";
+  document.getElementById("nvBg").classList.add("open");
+  setTimeout(function() { document.getElementById("nvTexto").focus(); }, 50);
+}
+
+function cerrarNuevaNovedad() {
+  document.getElementById("nvBg").classList.remove("open");
+}
+
+function nvImgElegida(files) {
+  if (!files || !files.length) return;
+  var f = files[0];
+  if (f.size > NV_MAX_MB * 1024 * 1024) {
+    showToast("La imagen supera " + NV_MAX_MB + " MB", "warn");
+    return;
+  }
+  NV_IMG = f;
+  renderNvImg();
+}
+
+function renderNvImg() {
+  var cont = document.getElementById("nvImgInfo");
+  cont.innerHTML = "";
+  if (!NV_IMG) return;
+  var el = document.createElement("div");
+  el.className = "q-item";
+  el.innerHTML =
+    '<span class="material-icons-round">image</span>'
+    + '<span class="q-name">' + esc(NV_IMG.name) + '</span>'
+    + '<button class="q-x" title="Quitar"><span class="material-icons-round">close</span></button>';
+  el.querySelector(".q-x").onclick = function() {
+    NV_IMG = null;
+    document.getElementById("nvImgInput").value = "";
+    renderNvImg();
+  };
+  cont.appendChild(el);
+}
+
+function crearNovedadUI() {
+  var texto = document.getElementById("nvTexto").value.trim();
+  if (!texto) { showToast("Escribe el texto de la novedad", "error"); return; }
+
+  var btn = document.getElementById("btnCrearNv");
+  btn.disabled  = true;
+  btn.innerHTML = '<span class="mini-sp"></span>Publicando…';
+
+  var d = {
+    modulo:      document.getElementById("nvModulo").value.trim(),
+    texto:       texto,
+    dias:        document.getElementById("nvDias").value,
+    comunicador: document.getElementById("nvComunicador").value.trim(),
+    fuente:      document.getElementById("nvFuente").value
+  };
+
+  var enviarNv = function() {
+    google.script.run
+      .withSuccessHandler(function(res) {
+        btn.disabled  = false;
+        btn.innerHTML = '<span class="material-icons-round">check</span>Publicar';
+        if (res.ok) {
+          cerrarNuevaNovedad();
+          showToast("✓ Novedad publicada", "success");
+          cargarNovedades(true);
+        } else {
+          showToast("Error: " + res.error, "error");
+        }
+      })
+      .withFailureHandler(function(e) {
+        btn.disabled  = false;
+        btn.innerHTML = '<span class="material-icons-round">check</span>Publicar';
+        showToast(e.message, "error");
+      })
+      .crearNovedad(d);
+  };
+
+  if (NV_IMG) {
+    var reader = new FileReader();
+    reader.onload = function() {
+      d.base64        = reader.result;
+      d.mime          = NV_IMG.type;
+      d.nombreArchivo = NV_IMG.name;
+      enviarNv();
+    };
+    reader.onerror = function() {
+      btn.disabled  = false;
+      btn.innerHTML = '<span class="material-icons-round">check</span>Publicar';
+      showToast("No se pudo leer la imagen", "error");
+    };
+    reader.readAsDataURL(NV_IMG);
+  } else {
+    enviarNv();
+  }
+}
+
+// ════════════════════════════════════════════════════════════
+// NUEVA CARPETA
+// ════════════════════════════════════════════════════════════
+function abrirNuevaCarpeta() {
+  document.getElementById("nfDestino").textContent = textoRuta();
+  document.getElementById("nfNombre").value = "";
+  document.getElementById("folderBg").classList.add("open");
+  setTimeout(function() { document.getElementById("nfNombre").focus(); }, 50);
+}
+
+function cerrarNuevaCarpeta() {
+  document.getElementById("folderBg").classList.remove("open");
+}
+
+function crearCarpetaUI() {
+  var nombre = document.getElementById("nfNombre").value.trim();
+  if (!nombre) { showToast("Escribe el nombre de la carpeta", "error"); return; }
+
+  var btn = document.getElementById("btnCrearCarpeta");
+  btn.disabled  = true;
+  btn.innerHTML = '<span class="mini-sp"></span>Creando…';
+
+  google.script.run
+    .withSuccessHandler(function(res) {
+      btn.disabled  = false;
+      btn.innerHTML = '<span class="material-icons-round">check</span>Crear';
+      if (res.ok) {
+        cerrarNuevaCarpeta();
+        showToast("✓ Carpeta creada", "success");
+        cargar(true);
+      } else {
+        showToast("Error: " + res.error, "error");
+      }
+    })
+    .withFailureHandler(function(e) {
+      btn.disabled  = false;
+      btn.innerHTML = '<span class="material-icons-round">check</span>Crear';
+      showToast(e.message, "error");
+    })
+    .crearCarpetaRepositorio(nombre, carpetaActual);
+}
+
+// ════════════════════════════════════════════════════════════
+// ELIMINAR (recurso o carpeta, con confirmación)
+// ════════════════════════════════════════════════════════════
+function pedirEliminar(r) {
+  var id = extraerDriveId(r.enlace);
+  pendienteEliminar = { tipo: "recurso", fila: r.fila, titulo: r.titulo, esDrive: !!id };
+
+  document.getElementById("delTexto").innerHTML =
+    'Se quitará <strong>' + esc(r.titulo) + '</strong> del repositorio. La fila se elimina de la hoja.';
+  var row = document.getElementById("delChkRow");
+  if (id) {
+    row.style.display = "flex";
+    // Los archivos subidos desde el panel guardan el ID suelto:
+    // para esos, marcar la papelera por defecto.
+    document.getElementById("delChk").checked = /^[-\w]{20,}$/.test(r.enlace);
+  } else {
+    row.style.display = "none";
+    document.getElementById("delChk").checked = false;
+  }
+  document.getElementById("confirmBg").classList.add("open");
+}
+
+function pedirEliminarCarpeta(c) {
+  pendienteEliminar = { tipo: "carpeta", id: c.id, nombre: c.nombre };
+  document.getElementById("delTexto").innerHTML =
+    'Se eliminará la carpeta <strong>' + esc(c.nombre) + '</strong>.<br>'
+    + 'Solo es posible si está vacía (sin subcarpetas ni archivos).';
+  document.getElementById("delChkRow").style.display = "none";
+  document.getElementById("delChk").checked = false;
+  document.getElementById("confirmBg").classList.add("open");
+}
+
+function cerrarConfirm() {
+  document.getElementById("confirmBg").classList.remove("open");
+  pendienteEliminar = null;
+}
+
+function confirmarEliminar() {
+  if (!pendienteEliminar) return;
+  var btn = document.getElementById("btnDel");
+  btn.disabled  = true;
+  btn.innerHTML = '<span class="mini-sp"></span>Eliminando…';
+
+  var tipoEl = pendienteEliminar.tipo;
+  var alTerminar = function(res) {
+    btn.disabled  = false;
+    btn.innerHTML = '<span class="material-icons-round">delete</span>Eliminar';
+    if (res.ok) {
+      if (pendienteEliminar && pendienteEliminar.tipo === "recurso"
+          && pendienteEliminar.fila === filaSel) limpiarPreview();
+      cerrarConfirm();
+      showToast("Eliminado", "success");
+      if (tipoEl === "novedad") { limpiarPreview(); cargarNovedades(true); }
+      else cargar(true);
+    } else {
+      showToast("Error: " + res.error, "error");
+    }
+  };
+  var alFallar = function(e) {
+    btn.disabled  = false;
+    btn.innerHTML = '<span class="material-icons-round">delete</span>Eliminar';
+    showToast(e.message, "error");
+  };
+
+  if (pendienteEliminar.tipo === "novedad") {
+    google.script.run
+      .withSuccessHandler(alTerminar).withFailureHandler(alFallar)
+      .eliminarNovedad(pendienteEliminar.id);
+  } else if (pendienteEliminar.tipo === "carpeta") {
+    google.script.run
+      .withSuccessHandler(alTerminar).withFailureHandler(alFallar)
+      .eliminarCarpetaRepositorio(pendienteEliminar.id);
+  } else {
+    var borrarArchivo = pendienteEliminar.esDrive && document.getElementById("delChk").checked;
+    google.script.run
+      .withSuccessHandler(alTerminar).withFailureHandler(alFallar)
+      .eliminarRecursoRepositorio(pendienteEliminar.fila, pendienteEliminar.titulo, borrarArchivo);
+  }
+}
+
+// ════════════════════════════════════════════════════════════
+// MODAL AGREGAR — modo archivo (multi) y modo enlace
+// El recurso se guarda en la carpeta actual del explorador.
+// ════════════════════════════════════════════════════════════
+function abrirSubida() {
+  // Sugerir las categorías existentes + las base en el datalist
+  var setCats = {};
+  CATS_BASE.forEach(function(c) { setCats[c] = true; });
+  RECURSOS.forEach(function(r) { setCats[r.categoria] = true; });
+  document.getElementById("catList").innerHTML =
+    Object.keys(setCats).sort().map(function(c) {
+      return '<option value="' + esc(c) + '">';
+    }).join("");
+
+  document.getElementById("upDestino").textContent = textoRuta();
+  document.getElementById("modalBg").classList.add("open");
+}
+
+function cerrarSubida() {
+  document.getElementById("modalBg").classList.remove("open");
+  COLA = [];
+  renderCola();
+  document.getElementById("fileInput").value = "";
+  document.getElementById("upEnlace").value  = "";
+  document.getElementById("upTitulo").value  = "";
+  document.getElementById("upDesc").value    = "";
+  document.getElementById("upCategoria").value = "";
+  setModo("archivo");
+}
+
+function setModo(m) {
+  modoModal = m;
+  document.getElementById("modeArchivo").classList.toggle("active", m === "archivo");
+  document.getElementById("modeEnlace").classList.toggle("active", m === "enlace");
+  document.getElementById("secArchivo").style.display = m === "archivo" ? "block" : "none";
+  document.getElementById("secEnlace").style.display  = m === "enlace"  ? "block" : "none";
+  if (m === "enlace") {
+    document.getElementById("upTipo").value = "Link";
+    var cat = document.getElementById("upCategoria");
+    if (!cat.value.trim()) cat.value = "Enlaces / Portales";
+  }
+  ajustarTitulo();
+}
+
+// ── Selección de archivos (clic o arrastre) ──────────────────
+function archivosElegidos(files) {
+  for (var i = 0; i < files.length; i++) {
+    var f = files[i];
+
+    // Los VIDEOS no se suben por el selector: convertirlos a base64 y mandarlos
+    // por google.script.run se cuelga. Se guían al modo Enlace (subir a Drive).
+    if (tipoPorExtension(f.name) === "Video") {
+      guiarVideoAEnlace(f.name);
+      continue;
+    }
+
+    // Archivo pesado (no video): tampoco es fiable por el selector → Enlace.
+    if (f.size > MAX_MB * 1024 * 1024) {
+      showToast("«" + f.name + "» supera " + MAX_MB + " MB. Súbelo a Drive y pégalo como Enlace.", "warn");
+      setModo("enlace");
+      continue;
+    }
+
+    var dup = COLA.some(function(q) { return q.file.name === f.name && q.file.size === f.size; });
+    if (!dup) COLA.push({ file: f });
+  }
+  document.getElementById("fileInput").value = "";
+  renderCola();
+}
+
+// Un video no puede subirse por el selector (se colgaría). Cambiamos al modo
+// Enlace, dejamos listo el Tipo y el título, y explicamos el paso por Drive.
+function guiarVideoAEnlace(nombre) {
+  setModo("enlace");
+  document.getElementById("upTipo").value = "Video";
+  var tit = document.getElementById("upTitulo");
+  if (!tit.value.trim()) tit.value = nombre.replace(/\.[^.]+$/, "");
+  showToast("Los videos van por Drive: súbelo y pega aquí el enlace", "info");
+}
+
+// Abre en Drive la carpeta donde iría el recurso (la del explorador actual, o
+// la raíz si estás en Inicio). Ahí subes el video y copias su enlace.
+function abrirCarpetaDrive() {
+  var url = "";
+  if (carpetaActual) {
+    var c = buscarCarpeta(carpetaActual);
+    if (c && c.idDrive) url = "https://drive.google.com/drive/folders/" + c.idDrive;
+  }
+  if (!url) url = URL_DRIVE;
+  if (!url) { showToast("No se encontró la carpeta de Drive. Actualiza el panel.", "error"); return; }
+  abrirUrlNueva(url);
+}
+
+function quitarDeCola(idx) {
+  COLA.splice(idx, 1);
+  renderCola();
+}
+
+function renderCola() {
+  var cont = document.getElementById("queue");
+  cont.innerHTML = "";
+  COLA.forEach(function(q, i) {
+    var kb = q.file.size / 1024;
+    var size = kb > 1024 ? (kb / 1024).toFixed(1) + " MB" : Math.ceil(kb) + " KB";
+    var el = document.createElement("div");
+    el.className = "q-item";
+    el.innerHTML =
+      '<span class="material-icons-round">insert_drive_file</span>'
+      + '<span class="q-name">' + esc(q.file.name) + '</span>'
+      + '<span class="q-size">' + size + '</span>'
+      + '<button class="q-x" title="Quitar"><span class="material-icons-round">close</span></button>';
+    el.querySelector(".q-x").onclick = function() { quitarDeCola(i); };
+    cont.appendChild(el);
+  });
+  ajustarTitulo();
+}
+
+// El título se autocompleta con un archivo; con varios se usa el nombre de cada uno
+function ajustarTitulo() {
+  var tit = document.getElementById("upTitulo");
+  if (modoModal === "archivo" && COLA.length > 1) {
+    tit.value = "";
+    tit.disabled = true;
+    tit.placeholder = "Se usará el nombre de cada archivo (" + COLA.length + ")";
+  } else {
+    tit.disabled = false;
+    tit.placeholder = "Nombre con el que aparecerá";
+    if (modoModal === "archivo" && COLA.length === 1 && !tit.value.trim()) {
+      tit.value = COLA[0].file.name.replace(/\.[^.]+$/, "");
+      var tipoDetectado = tipoPorExtension(COLA[0].file.name);
+      if (tipoDetectado) document.getElementById("upTipo").value = tipoDetectado;
+    }
+  }
+}
+
+// ── Enviar (ambos modos) ─────────────────────────────────────
+function enviar() {
+  if (modoModal === "enlace") { enviarEnlace(); return; }
+
+  if (!COLA.length) { showToast("Elige al menos un archivo", "error"); return; }
+  if (COLA.length === 1 && !document.getElementById("upTitulo").value.trim()) {
+    showToast("Escribe un título", "error"); return;
+  }
+  subirSecuencial();
+}
+
+function enviarEnlace() {
+  var enlace = document.getElementById("upEnlace").value.trim();
+  var titulo = document.getElementById("upTitulo").value.trim();
+  if (!enlace) { showToast("Pega la URL o el ID de Drive", "error"); return; }
+  if (!titulo) { showToast("Escribe un título", "error"); return; }
+
+  bloquearEnviar("Guardando…");
+  google.script.run
+    .withSuccessHandler(function(res) {
+      restaurarEnviar();
+      if (res.ok) {
+        cerrarSubida();
+        showToast("✓ Enlace agregado al repositorio", "success");
+        cargar(true);
+      } else {
+        showToast("Error: " + res.error, "error");
+      }
+    })
+    .withFailureHandler(function(e) { restaurarEnviar(); showToast(e.message, "error"); })
+    .registrarRecursoRepositorio({
+      titulo:      titulo,
+      enlace:      enlace,
+      categoria:   document.getElementById("upCategoria").value.trim(),
+      tipo:        document.getElementById("upTipo").value,
+      descripcion: document.getElementById("upDesc").value.trim(),
+      idCarpeta:   carpetaActual
+    });
+}
+
+// Sube los archivos de la cola uno por uno y reporta el resultado total
+function subirSecuencial() {
+  var i = 0, ok = 0, errores = [];
+  var total = COLA.length;
+  var tituloUnico = document.getElementById("upTitulo").value.trim();
+  var categoria   = document.getElementById("upCategoria").value.trim();
+  var tipoSel     = document.getElementById("upTipo").value;
+  var desc        = document.getElementById("upDesc").value.trim();
+  var destino     = carpetaActual;   // carpeta del explorador al iniciar la subida
+
+  bloquearEnviar("Subiendo 1/" + total + "…");
+
+  function siguiente() {
+    if (i >= total) { terminar(); return; }
+    bloquearEnviar("Subiendo " + (i + 1) + "/" + total + "…");
+
+    var f = COLA[i].file;
+    var reader = new FileReader();
+    reader.onload = function() {
+      google.script.run
+        .withSuccessHandler(function(res) {
+          if (res.ok) ok++; else errores.push(f.name + ": " + res.error);
+          i++; siguiente();
+        })
+        .withFailureHandler(function(e) {
+          errores.push(f.name + ": " + e.message);
+          i++; siguiente();
+        })
+        .registrarRecursoRepositorio({
+          base64:        reader.result,
+          nombreArchivo: f.name,
+          mime:          f.type,
+          titulo:        (total === 1 && tituloUnico) ? tituloUnico : f.name.replace(/\.[^.]+$/, ""),
+          categoria:     categoria,
+          tipo:          tipoPorExtension(f.name) || tipoSel,
+          descripcion:   desc,
+          idCarpeta:     destino
+        });
+    };
+    reader.onerror = function() { errores.push(f.name + ": no se pudo leer"); i++; siguiente(); };
+    reader.readAsDataURL(f);
+  }
+
+  function terminar() {
+    restaurarEnviar();
+    cerrarSubida();
+    if (errores.length) {
+      showToast(ok + " subido(s), " + errores.length + " con error: " + errores[0], "warn");
+    } else {
+      showToast("✓ " + ok + " archivo(s) subido(s) y registrado(s)", "success");
+    }
+    cargar(true);
+  }
+
+  siguiente();
+}
+
+function bloquearEnviar(txt) {
+  var btn = document.getElementById("btnUp");
+  btn.disabled  = true;
+  btn.innerHTML = '<span class="mini-sp"></span>' + esc(txt);
+}
+
+function restaurarEnviar() {
+  var btn = document.getElementById("btnUp");
+  btn.disabled  = false;
+  btn.innerHTML = '<span class="material-icons-round">check</span>Agregar';
+}
+
+// ════════════════════════════════════════════════════════════
+// ARRASTRAR Y SOLTAR + ATAJOS DE TECLADO
+// ════════════════════════════════════════════════════════════
+document.addEventListener("DOMContentLoaded", function() {
+  var drop = document.getElementById("drop");
+  ["dragover", "dragenter"].forEach(function(ev) {
+    drop.addEventListener(ev, function(e) { e.preventDefault(); drop.classList.add("over"); });
+  });
+  ["dragleave", "drop"].forEach(function(ev) {
+    drop.addEventListener(ev, function(e) { e.preventDefault(); drop.classList.remove("over"); });
+  });
+  drop.addEventListener("drop", function(e) {
+    if (e.dataTransfer && e.dataTransfer.files.length) archivosElegidos(e.dataTransfer.files);
+  });
+
+  // Enter en el modal de nueva carpeta = crear
+  document.getElementById("nfNombre").addEventListener("keydown", function(e) {
+    if (e.key === "Enter") crearCarpetaUI();
+  });
+
+  document.addEventListener("keydown", function(e) {
+    if (e.key === "Escape") {
+      if (document.getElementById("confirmBg").classList.contains("open")) cerrarConfirm();
+      else if (document.getElementById("nvBg").classList.contains("open")) cerrarNuevaNovedad();
+      else if (document.getElementById("folderBg").classList.contains("open")) cerrarNuevaCarpeta();
+      else if (document.getElementById("modalBg").classList.contains("open")) cerrarSubida();
+    }
+    // "/" enfoca el buscador (si no se está escribiendo en un campo)
+    if (e.key === "/" && !/^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName)) {
+      e.preventDefault();
+      document.getElementById("busqueda").focus();
+    }
+  });
+});
+
+// ════════════════════════════════════════════════════════════
+// CERRAR E INICIALIZACIÓN
+// ════════════════════════════════════════════════════════════
+function cerrar() { google.script.host.close(); }
+
+window.addEventListener("load", function() {
+  try { FAVS = JSON.parse(lsGet("repoFavs") || "{}"); } catch(e) { FAVS = {}; }
+
+  // Pintar la copia local al instante (si existe) y refrescar en segundo plano
+  var cache = null;
+  try { cache = JSON.parse(lsGet("ccCache") || "null"); } catch(e) {}
+  if (cache && (cache.recursos || cache.carpetas)) {
+    CARPETAS = cache.carpetas || [];
+    RECURSOS = cache.recursos || [];
+    URL_B    = cache.urlArchivoB || "";
+    GID_REPO = cache.gidRepositorio || 0;
+    URL_DRIVE = cache.urlCarpetaDrive || "";
+    construirSidebar();
+    render();
+    cargar(true);
+  } else {
+    construirSidebar();
+    cargar(false);
+  }
+  cargarNovedades(true);
+});
+</script>
+</body>
+</html>

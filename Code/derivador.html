@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <meta charset="UTF-8">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+  <style>
+    /* ── Reset y base ───────────────────────────────────────── */
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      font-family:'Inter',sans-serif;
+      background:#e8edf2;
+      color:#1e293b;
+      font-size:12px;
+      line-height:1.4;
+    }
+
+    /* ── Header ─────────────────────────────────────────────── */
+    .hd {
+      background:linear-gradient(135deg,#0f2a4a 0%,#1e3a5f 40%,#2b5797 100%);
+      padding:9px 12px; color:#fff;
+      display:flex; align-items:center; gap:8px;
+      position:sticky; top:0; z-index:10;
+      box-shadow:0 2px 8px rgba(15,42,74,0.25);
+    }
+    .hd .material-icons-round { font-size:18px; opacity:0.9; }
+    .hd h1 { font-size:13px; font-weight:700; flex:1; letter-spacing:-0.2px; }
+    .hd-btn {
+      background:rgba(255,255,255,0.12); border:none; border-radius:4px;
+      color:#fff; width:24px; height:24px;
+      display:flex; align-items:center; justify-content:center;
+      cursor:pointer; transition:background 0.15s;
+    }
+    .hd-btn:hover { background:rgba(255,255,255,0.25); }
+    .hd-btn .material-icons-round { font-size:15px; }
+
+    /* ── Layout ──────────────────────────────────────────────── */
+    .wrap { padding:8px; display:flex; flex-direction:column; gap:8px; }
+
+    /* ── Cards ──────────────────────────────────────────────── */
+    .c {
+      background:#fff; border-radius:8px; padding:10px 12px;
+      border:1px solid #d5dce6; box-shadow:0 1px 3px rgba(0,0,0,0.04);
+    }
+    .ct {
+      font-size:9px; font-weight:700; color:#1e3a5f;
+      text-transform:uppercase; letter-spacing:0.7px;
+      margin-bottom:8px; display:flex; align-items:center; gap:5px;
+    }
+    .ct .material-icons-round { font-size:13px; color:#2b5797; }
+
+    /* ── Labels e inputs ─────────────────────────────────────── */
+    label {
+      display:block; font-size:8px; font-weight:700;
+      color:#536580; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:3px;
+    }
+    textarea, input, select {
+      width:100%; padding:7px 9px;
+      border:1.5px solid #d5dce6; border-radius:6px;
+      font-size:11px; font-family:'Inter',sans-serif;
+      color:#1e293b; background:#f7f9fc;
+      transition:border-color 0.15s, box-shadow 0.15s;
+      margin-bottom:6px;
+    }
+    textarea { resize:vertical; min-height:52px; }
+    textarea:focus, input:focus, select:focus {
+      outline:none; border-color:#2b5797;
+      background:#fff; box-shadow:0 0 0 3px rgba(43,87,151,0.08);
+    }
+    select {
+      cursor:pointer; appearance:none;
+      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='%23536580'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+      background-repeat:no-repeat; background-position:right 8px center;
+    }
+
+    /* ── Selector de hoja + botón confirmar ─────────────────── */
+    /* Flujo: procesar ticket → aparece "Confirmar" junto al select
+       → usuario puede cambiar la hoja libremente → pulsa Confirmar
+       → se habilita Registrar.
+       Si cambia la hoja después de confirmar, vuelve a pedir confirmación. */
+    .hoja-wrap { display:flex; gap:5px; align-items:center; }
+    .hoja-wrap select { flex:1; margin-bottom:0; }
+
+    /* Botón verde que aparece al procesar un ticket */
+    .btn-confirm-hoja {
+      display:none; padding:7px 10px;
+      border:none; border-radius:6px;
+      background:linear-gradient(135deg,#065f46,#059669);
+      color:#fff; font-size:10px; font-weight:700;
+      font-family:'Inter',sans-serif; cursor:pointer;
+      white-space:nowrap; align-items:center; gap:4px;
+      box-shadow:0 2px 6px rgba(5,150,105,0.3);
+      transition:all 0.15s; flex-shrink:0;
+    }
+    .btn-confirm-hoja:hover { box-shadow:0 3px 10px rgba(5,150,105,0.4); transform:translateY(-1px); }
+    .btn-confirm-hoja.visible { display:flex; }
+    .btn-confirm-hoja .material-icons-round { font-size:13px; }
+
+    /* Indicador "OK" que aparece tras confirmar */
+    .hoja-ok {
+      display:none; font-size:9px; font-weight:700;
+      color:#059669; align-items:center; gap:3px; flex-shrink:0;
+    }
+    .hoja-ok.visible { display:flex; }
+    .hoja-ok .material-icons-round { font-size:13px; }
+
+    /* ── Badge tipo ticket (WO / INC) ───────────────────────── */
+    .ticket-badge { display:none; padding:2px 7px; border-radius:10px; font-size:8px; font-weight:700; margin-left:4px; }
+    .badge-wo  { background:#dbeafe; color:#1e40af; }
+    .badge-inc { background:#fef3c7; color:#92400e; }
+
+    /* ── Grids ───────────────────────────────────────────────── */
+    .r2 { display:grid; grid-template-columns:1fr 1fr; gap:0 8px; }
+    .r3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:0 8px; }
+
+    /* ── Botones ─────────────────────────────────────────────── */
+    .btn {
+      padding:8px 12px; border:none; border-radius:6px;
+      font-size:11px; font-weight:600; font-family:'Inter',sans-serif;
+      cursor:pointer; display:inline-flex; align-items:center;
+      justify-content:center; gap:5px; transition:all 0.15s;
+    }
+    .btn .material-icons-round { font-size:14px; }
+    .btn-p {
+      background:linear-gradient(135deg,#1e3a5f,#2b5797); color:#fff;
+      box-shadow:0 2px 6px rgba(30,58,95,0.2);
+    }
+    .btn-p:hover   { box-shadow:0 3px 10px rgba(30,58,95,0.3); transform:translateY(-1px); }
+    .btn-p:active  { transform:translateY(0); }
+    .btn-p:disabled { opacity:0.45; cursor:not-allowed; transform:none; box-shadow:none; }
+    .btn-paste {
+      background:linear-gradient(135deg,#065f46,#059669); color:#fff;
+      border:none; box-shadow:0 2px 6px rgba(5,150,105,0.25);
+    }
+    .btn-paste:hover  { box-shadow:0 3px 10px rgba(5,150,105,0.35); transform:translateY(-1px); }
+    .btn-paste:active { transform:translateY(0); }
+    .btn-o { background:#fff; color:#475569; border:1.5px solid #d5dce6; flex:1; }
+    .btn-o:hover { background:#f1f5f9; border-color:#b8c4d4; }
+    .btn-d { background:#fff0f0; color:#c53030; border:1px solid #fecaca; padding:5px 8px; }
+    .btn-d:hover { background:#fecaca; }
+    .btn-x { background:#f1f5f9; color:#475569; border:1.5px solid #d5dce6; padding:8px 10px; }
+    .btn-x:hover { background:#e2e8f0; }
+
+    /* ── Fila de botones ─────────────────────────────────────── */
+    .br { display:flex; gap:5px; margin-top:6px; }
+
+    /* ── Barra de estado ─────────────────────────────────────── */
+    .st { display:flex; align-items:center; gap:5px; font-size:9px; color:#94a3b8; margin-top:6px; }
+    .st-dot { width:6px; height:6px; border-radius:50%; background:#10b981; box-shadow:0 0 4px rgba(16,185,129,0.4); }
+
+    /* ── Spinner ─────────────────────────────────────────────── */
+    .ld { display:none; text-align:center; padding:6px; }
+    .sp {
+      width:16px; height:16px;
+      border:2px solid #e2e8f0; border-top-color:#2b5797;
+      border-radius:50%; animation:spin .6s linear infinite; display:inline-block;
+    }
+    @keyframes spin { to { transform:rotate(360deg); } }
+
+    /* ── Historial ───────────────────────────────────────────── */
+    .lh { display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; }
+    .le { text-align:center; color:#b0bcc9; font-size:10px; padding:16px 0; }
+    .badge { background:#e0ecff; color:#1e3a5f; padding:2px 7px; border-radius:10px; font-size:9px; font-weight:700; }
+    .log-table-wrap {
+      max-height:220px; overflow:auto;
+      margin-top:4px; border-radius:6px; border:1px solid #e2e8f0;
+    }
+    .log-table { width:100%; border-collapse:collapse; font-size:10px; }
+    .log-table thead th {
+      background:linear-gradient(135deg,#0f2a4a,#1e3a5f);
+      color:#fff; padding:6px 8px; text-align:left;
+      font-size:8px; font-weight:700; text-transform:uppercase;
+      letter-spacing:0.5px; position:sticky; top:0; white-space:nowrap;
+    }
+    .log-table thead th:first-child { border-radius:5px 0 0 0; }
+    .log-table thead th:last-child  { border-radius:0 5px 0 0; }
+    .log-table tbody td {
+      padding:5px 8px; border-bottom:1px solid #f0f3f7;
+      color:#334155; white-space:nowrap; overflow:hidden;
+      text-overflow:ellipsis; max-width:130px;
+    }
+    .log-table tbody tr:hover                 { background:#f5f8ff; }
+    .log-table tbody tr:nth-child(even)       { background:#fafbfd; }
+    .log-table tbody tr:nth-child(even):hover { background:#f0f5ff; }
+    .log-caso      { font-weight:600; color:#0f2a4a; }
+    .log-hoja-tag  { background:#e0ecff; color:#1e3a5f; padding:2px 6px; border-radius:4px; font-size:8px; font-weight:700; display:inline-block; }
+    .log-consultor { color:#536580; }
+    .log-table-wrap::-webkit-scrollbar        { width:5px; height:5px; }
+    .log-table-wrap::-webkit-scrollbar-track  { background:#f1f5f9; border-radius:3px; }
+    .log-table-wrap::-webkit-scrollbar-thumb  { background:#c1cdd9; border-radius:3px; }
+    .log-table-wrap::-webkit-scrollbar-thumb:hover { background:#94a3b8; }
+
+    /* ── Toast de notificaciones ────────────────────────────── */
+    .toast {
+      position:fixed; bottom:8px; left:10px; right:10px;
+      padding:8px 12px; border-radius:6px; color:#fff;
+      font-size:11px; font-weight:500; display:none;
+      align-items:center; gap:6px; z-index:99;
+      box-shadow:0 4px 14px rgba(0,0,0,0.18); animation:su .25s ease;
+    }
+    .toast.success { background:linear-gradient(135deg,#047857,#059669); }
+    .toast.error   { background:linear-gradient(135deg,#b91c1c,#dc2626); }
+    .toast.info    { background:linear-gradient(135deg,#1e3a5f,#2b5797); }
+    .toast.warn    { background:linear-gradient(135deg,#b45309,#d97706); }
+    .toast .material-icons-round { font-size:15px; }
+    @keyframes su {
+      from { transform:translateY(8px); opacity:0; }
+      to   { transform:translateY(0);   opacity:1; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Header ──────────────────────────────────────────────── -->
+<div class="hd">
+  <span class="material-icons-round">confirmation_number</span>
+  <h1>Derivador SAP</h1>
+  <button class="hd-btn" onclick="cerrarPanel()" title="Cerrar">
+    <span class="material-icons-round">close</span>
+  </button>
+</div>
+
+<div class="wrap">
+
+  <!-- ── Sección 1: Pegar texto del ticket ──────────────────── -->
+  <div class="c">
+    <div class="ct"><span class="material-icons-round">content_paste</span>Pegar texto</div>
+    <textarea id="texto" placeholder="Pega aquí el texto del ticket (WO o INC)..."></textarea>
+    <!-- Botones iguales con flex:1 para mismo ancho -->
+    <div class="br">
+      <button class="btn btn-paste" onclick="pegarTexto()" style="flex:1;">
+        <span class="material-icons-round">content_paste</span>Pegar
+      </button>
+      <button class="btn btn-p" onclick="procesarTexto()" style="flex:1;">
+        <span class="material-icons-round">search</span>Procesar
+      </button>
+      <button class="btn btn-x" onclick="limpiarTexto()">
+        <span class="material-icons-round" style="font-size:14px;">close</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ── Sección 2: Formulario de registro ──────────────────── -->
+  <div class="c">
+    <div class="ct">
+      <span class="material-icons-round">edit_note</span>Registro
+      <!-- Badge: aparece al procesar e indica el tipo (WO / INC) -->
+      <span class="ticket-badge" id="tipoBadge"></span>
+    </div>
+
+    <div class="r3">
+      <div>
+        <label>Asignador</label>
+        <input type="text" id="asignador" placeholder="Nombre">
+      </div>
+      <div>
+        <label>Hoja destino</label>
+        <!-- Al procesar aparece "Confirmar" junto al select.
+             Cambiar la hoja después de confirmar pide nueva confirmación. -->
+        <div class="hoja-wrap">
+          <select id="hoja" onchange="onHojaChange()">
+            <option value="1.5">1.5</option>
+            <option value="Funcionales">Funcionales</option>
+            <option value="Basis">Basis</option>
+            <option value="Desvinculaciones">Desvinculaciones</option>
+            <option value="SEGA">SEGA</option>
+            <option value="SOX Sega">SOX Sega</option>
+            <option value="SOX funcionales">SOX funcionales</option>
+            <option value="SSFF">SSFF</option>
+          </select>
+          <button class="btn-confirm-hoja" id="btnConfirmHoja" onclick="confirmarHoja()">
+            <span class="material-icons-round">check_circle</span>Confirmar
+          </button>
+          <span class="hoja-ok" id="hojaOk">
+            <span class="material-icons-round">check_circle</span>OK
+          </span>
+        </div>
+      </div>
+      <div>
+        <label>Ticket</label>
+        <input type="text" id="ticket" placeholder="WO... / INC...">
+      </div>
+    </div>
+
+    <div class="r2">
+      <div><label>Titulo</label><input type="text" id="titulo" placeholder="Titulo del caso"></div>
+      <div><label>Consultor</label><input type="text" id="consultor" placeholder="Nombre"></div>
+    </div>
+
+    <label>Grupo</label>
+    <input type="text" id="grupo" placeholder="Grupo asignado">
+
+    <div class="ld" id="loading"><div class="sp"></div></div>
+
+    <!-- Deshabilitado hasta confirmar la hoja destino -->
+    <button class="btn btn-p" id="btnRegistrar" onclick="registrar()" disabled style="width:100%;">
+      <span class="material-icons-round">save</span>Registrar
+    </button>
+
+    <div class="br">
+      <button class="btn btn-o" onclick="copiarUltimo()">
+        <span class="material-icons-round">content_copy</span>Copiar ultimo
+      </button>
+      <button class="btn btn-o" onclick="limpiarCampos()">
+        <span class="material-icons-round">restart_alt</span>Limpiar
+      </button>
+    </div>
+
+    <div class="st">
+      <div class="st-dot"></div>
+      <span id="statusText">Listo — confirma la hoja para registrar</span>
+    </div>
+  </div>
+
+  <!-- ── Sección 3: Historial de registros ──────────────────── -->
+  <div class="c">
+    <div class="lh">
+      <div class="ct" style="margin:0;">
+        <span class="material-icons-round">history</span>Registros
+        <span class="badge" id="cnt">0</span>
+      </div>
+      <button class="btn btn-d" onclick="limpiarLog()" title="Borrar historial">
+        <span class="material-icons-round" style="font-size:12px;">delete</span>
+      </button>
+    </div>
+    <div class="log-table-wrap">
+      <table class="log-table">
+        <thead>
+          <tr>
+            <th>Nombre</th><th>Caso</th><th>Fecha</th><th>Hora</th>
+            <th>Titulo</th><th>Consultor</th><th>Hoja</th>
+          </tr>
+        </thead>
+        <tbody id="logBody">
+          <tr id="le"><td colspan="7" class="le">Sin registros aún</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<!-- Toast de notificaciones -->
+<div class="toast" id="toast">
+  <span class="material-icons-round" id="ti">check_circle</span>
+  <span id="tm"></span>
+</div>
+
+<script>
+// ════════════════════════════════════════════════════════════
+// CONSTANTES
+// ════════════════════════════════════════════════════════════
+var HOJAS_SIN_CONSULTOR = [];   // Fuente única en Código.gs; se carga al abrir el panel
+var MAX_REGISTROS = 10;   // Filas máximas en el historial visible
+var ult           = "";   // Último registro para "Copiar ultimo"
+var tot           = 0;    // Contador de registros en sesión
+var hojaConfirmada = false;
+
+// Mapa grupo → hoja destino (fuente: Mapeo_Grupos_SAP.xlsx).
+// Clave: sufijo tras la última "sap" normalizado (minúsculas, sin tildes/guiones).
+// El grupo base (sin sufijo = Sop_Aplicaciones_Sap) se maneja en detectarHoja().
+var GRUPO_HOJAS = [
+  { key:"abap",        normal:"Funcionales", sox:"SOX funcionales" },
+  { key:"basis",       normal:"Basis",       sox:"SOX funcionales" },
+  { key:"bw",          normal:"Funcionales", sox:"SOX funcionales" },
+  { key:"cpi",         normal:"Funcionales", sox:"SOX funcionales" },
+  { key:"erp",         normal:"Funcionales", sox:"SOX funcionales" },
+  { key:"fi",          normal:"Funcionales", sox:"SOX funcionales" },
+  { key:"grc",         normal:"Funcionales", sox:"SOX funcionales" },
+  { key:"hcm",         normal:"Funcionales", sox:"SOX funcionales" },
+  { key:"letra",       normal:"Funcionales", sox:"SOX funcionales" },
+  { key:"po portales", normal:"Funcionales", sox:"SOX funcionales" },
+  { key:"qm",          normal:"Funcionales", sox:"SOX funcionales" },
+  { key:"robots",      normal:"Funcionales", sox:"SOX funcionales" },
+  { key:"portal ssff", normal:"SSFF",        sox:"SSFF"            },
+  { key:"sega",        normal:"SEGA",        sox:"SOX Sega"        }
+];
+
+// ════════════════════════════════════════════════════════════
+// CONFIRMACIÓN DE HOJA
+// Flujo:
+//   1. Procesar ticket → aparece botón "Confirmar" junto al select
+//   2. Usuario cambia la hoja libremente con el select
+//   3. Pulsa "Confirmar" → se habilita Registrar y aparece "OK"
+//   4. Si cambia la hoja de nuevo → vuelve a pedir confirmación
+// ════════════════════════════════════════════════════════════
+
+// Muestra el botón Confirmar (se llama al procesar un ticket)
+function pedirConfirmHoja() {
+  hojaConfirmada = false;
+  setBtnRegistrar(false);
+  document.getElementById("btnConfirmHoja").classList.add("visible");
+  document.getElementById("hojaOk").classList.remove("visible");
+}
+
+// Confirma la hoja y habilita el botón Registrar
+function confirmarHoja() {
+  hojaConfirmada = true;
+  setBtnRegistrar(true);
+  document.getElementById("btnConfirmHoja").classList.remove("visible");
+  document.getElementById("hojaOk").classList.add("visible");
+  showToast("Hoja confirmada: " + document.getElementById("hoja").value, "success");
+}
+
+// Al cambiar el select: si había confirmación previa, la resetea
+function onHojaChange() {
+  if (hojaConfirmada || document.getElementById("btnConfirmHoja").classList.contains("visible")) {
+    hojaConfirmada = false;
+    setBtnRegistrar(false);
+    document.getElementById("btnConfirmHoja").classList.add("visible");
+    document.getElementById("hojaOk").classList.remove("visible");
+  }
+  guardarEstado();
+}
+
+function setBtnRegistrar(enabled) {
+  document.getElementById("btnRegistrar").disabled = !enabled;
+}
+
+// ════════════════════════════════════════════════════════════
+// PERSISTENCIA — localStorage
+// Guarda el estado del formulario e historial entre sesiones.
+// ════════════════════════════════════════════════════════════
+
+function guardarEstado() {
+  try {
+    localStorage.setItem("ticketsCampos", JSON.stringify({
+      texto:        document.getElementById("texto").value,
+      asignador:    document.getElementById("asignador").value,
+      hoja:         document.getElementById("hoja").value,
+      ticket:       document.getElementById("ticket").value,
+      titulo:       document.getElementById("titulo").value,
+      consultor:    document.getElementById("consultor").value,
+      grupo:        document.getElementById("grupo").value,
+      ultimoCopiar: ult
+    }));
+  } catch(e) {}
+}
+
+// Agrega un registro al historial (máximo MAX_REGISTROS)
+function guardarHistorial(r) {
+  try {
+    var hist = JSON.parse(localStorage.getItem("ticketsHistorial") || "[]");
+    hist.unshift(r);
+    if (hist.length > MAX_REGISTROS) hist = hist.slice(0, MAX_REGISTROS);
+    localStorage.setItem("ticketsHistorial", JSON.stringify(hist));
+  } catch(e) {}
+}
+
+function cargarEstado() {
+  try {
+    var e = JSON.parse(localStorage.getItem("ticketsCampos") || "null");
+    if (e) {
+      document.getElementById("texto").value     = e.texto     || "";
+      document.getElementById("asignador").value = e.asignador || "";
+      document.getElementById("hoja").value      = e.hoja      || "1.5";
+      document.getElementById("ticket").value    = e.ticket    || "";
+      document.getElementById("titulo").value    = e.titulo    || "";
+      document.getElementById("consultor").value = e.consultor || "";
+      document.getElementById("grupo").value     = e.grupo     || "";
+      ult = e.ultimoCopiar || "";
+    }
+  } catch(e) {}
+}
+
+function cargarHistorial() {
+  try {
+    var hist = JSON.parse(localStorage.getItem("ticketsHistorial") || "[]");
+    if (!hist.length) return;
+    var le = document.getElementById("le");
+    if (le) le.remove();
+    var tbody = document.getElementById("logBody");
+    tbody.innerHTML = "";
+    hist.forEach(function(r) { tbody.appendChild(crearFila(r)); });
+    tot = hist.length;
+    document.getElementById("cnt").textContent = tot;
+  } catch(e) {}
+}
+
+// ════════════════════════════════════════════════════════════
+// UTILIDADES
+// ════════════════════════════════════════════════════════════
+
+function cerrarPanel() { guardarEstado(); google.script.host.close(); }
+
+function showToast(msg, tipo) {
+  var el = document.getElementById("toast");
+  document.getElementById("tm").textContent = msg;
+  document.getElementById("ti").textContent =
+    ({ success:"check_circle", error:"error", info:"info", warn:"warning" })[tipo] || "info";
+  el.className = "toast " + tipo;
+  el.style.display = "flex";
+  setTimeout(function() { el.style.display = "none"; }, 2800);
+}
+
+// Escapa HTML para insertar texto en la tabla de forma segura
+function esc(t) { var d = document.createElement("div"); d.textContent = t || ""; return d.innerHTML; }
+
+// Crea una fila <tr> para el historial (reutilizada al cargar y al registrar)
+function crearFila(r) {
+  var tr = document.createElement("tr");
+  tr.innerHTML =
+    "<td>" + esc(r.asignador) + "</td>" +
+    "<td class='log-caso'>" + esc(r.caso) + "</td>" +
+    "<td>" + esc(r.fecha) + "</td>" +
+    "<td>" + esc(r.hora) + "</td>" +
+    "<td>" + esc(r.titulo) + "</td>" +
+    "<td class='log-consultor'>" + esc(r.consultor) + "</td>" +
+    "<td><span class='log-hoja-tag'>" + esc(r.hoja) + "</span></td>";
+  return tr;
+}
+
+// ════════════════════════════════════════════════════════════
+// PEGAR DESDE PORTAPAPELES
+// ════════════════════════════════════════════════════════════
+function pegarTexto() {
+  navigator.clipboard.readText()
+    .then(function(text) {
+      if (!text.trim()) { showToast("El portapapeles está vacío","error"); return; }
+      document.getElementById("texto").value = text;
+      guardarEstado();
+      showToast("Texto pegado","success");
+    })
+    .catch(function() { showToast("No se pudo acceder al portapapeles","error"); });
+}
+
+// ── Auto-detección de hoja según grupo y título ──────────────
+function normG(t) {
+  return (t || "").toLowerCase()
+    .replace(/[áàä]/g,"a").replace(/[éèë]/g,"e").replace(/[íìï]/g,"i")
+    .replace(/[óòö]/g,"o").replace(/[úùü]/g,"u").replace(/ñ/g,"n")
+    .replace(/[-_]/g," ").replace(/\s+/g," ").trim();
+}
+
+// Devuelve la hoja correcta según el grupo y el título.
+// Lógica del grupo base (Sop_Aplicaciones_Sap sin sufijo):
+//   - título con "deshabilitaci" → Desvinculaciones
+//   - cualquier otro caso       → 1.5
+// Retorna null si el grupo no es SAP o no se reconoce (usuario elige).
+function detectarHoja(grupo, titulo) {
+  var g     = normG(grupo);
+  var t     = normG(titulo);
+  var esSox   = t.indexOf("sox") !== -1;
+  var esDeshab = t.indexOf("deshabilitaci") !== -1;
+
+  // Si el nombre no contiene "sap" no es un grupo SAP reconocido
+  if (g.indexOf("sap") === -1) return null;
+
+  // Extraer sufijo tras el último "sap" del nombre del grupo
+  var idx = g.lastIndexOf("sap");
+  var suf = idx !== -1 ? g.slice(idx + 3).trim() : "";
+
+  // Grupo base sin sufijo (ej. Sop_Aplicaciones_Sap)
+  if (!suf) {
+    if (esDeshab) return "Desvinculaciones";
+    return "1.5";
+  }
+
+  for (var i = 0; i < GRUPO_HOJAS.length; i++) {
+    if (suf.indexOf(GRUPO_HOJAS[i].key) === 0) {
+      return esSox ? GRUPO_HOJAS[i].sox : GRUPO_HOJAS[i].normal;
+    }
+  }
+  return null;
+}
+
+// ════════════════════════════════════════════════════════════
+// PROCESAR TICKET
+// Extrae número de ticket, título, consultor y grupo del texto.
+// Detecta formato WO (Work Order) e INC (Incident).
+// ════════════════════════════════════════════════════════════
+function procesarTexto() {
+  var texto = document.getElementById("texto").value;
+  if (!texto.trim()) { showToast("Pega un texto primero","error"); return; }
+
+  var lineas   = texto.split(/\r?\n/).map(function(l) { return l.trim(); });
+  var noVacias = lineas.filter(function(l) { return l !== ""; });
+  var ticket   = "", titulo = "", consultor = "", grupo = "", tipo = "";
+
+  // Detectar WO (Work Order): título 2 líneas después del número
+  var mWO = texto.match(/WO\d{10,}/);
+  if (mWO) {
+    ticket = mWO[0]; tipo = "WO";
+    for (var i = 0; i < lineas.length; i++) {
+      if (lineas[i].indexOf(ticket) !== -1 && i + 2 < lineas.length) {
+        titulo = lineas[i + 2]; break;
+      }
+    }
+  }
+
+  // Detectar INC (Incident): título en la 3ª línea no vacía
+  var mINC = texto.match(/INC\d{9,}/);
+  if (mINC) {
+    ticket = mINC[0]; tipo = "INC";
+    if (noVacias.length >= 3) titulo = noVacias[2];
+  }
+
+  // Extraer consultor y grupo (mismo patrón WO e INC)
+  for (var i = 0; i < lineas.length; i++) {
+    var lc = lineas[i].toLowerCase();
+    if ((lc === "asignado a" || lc === "assigned to") && i + 1 < lineas.length) {
+      consultor = lineas[i + 1];
+    }
+    if ((lc === "grupo asignado" || lc === "grupo de soporte" || lc === "support group") && i + 1 < lineas.length) {
+      grupo = lineas[i + 1];
+    }
+  }
+
+  // Rellenar formulario
+  document.getElementById("ticket").value    = ticket;
+  document.getElementById("titulo").value    = titulo;
+  document.getElementById("consultor").value = consultor;
+  document.getElementById("grupo").value     = grupo;
+
+  // Auto-seleccionar hoja según grupo y si el título contiene "sox"
+  var hojaAuto = detectarHoja(grupo, titulo);
+  if (hojaAuto) document.getElementById("hoja").value = hojaAuto;
+
+  // Mostrar badge de tipo
+  var badge = document.getElementById("tipoBadge");
+  if (tipo) {
+    badge.textContent   = tipo;
+    badge.className     = "ticket-badge " + (tipo === "WO" ? "badge-wo" : "badge-inc");
+    badge.style.display = "inline-flex";
+  } else {
+    badge.style.display = "none";
+  }
+
+  // Limpiar textarea y pedir confirmación de hoja
+  document.getElementById("texto").value = "";
+  guardarEstado();
+
+  if (!ticket) {
+    showToast("No se encontró número de ticket","warn");
+  } else {
+    pedirConfirmHoja();
+    var msgHoja = hojaAuto
+      ? "Hoja: " + hojaAuto + " — confirma para registrar"
+      : "selecciona la hoja y confirma";
+    showToast("Procesado (" + tipo + ") — " + msgHoja, "info");
+  }
+}
+
+// ════════════════════════════════════════════════════════════
+// REGISTRAR
+// Envía los datos a registrarEnSheet() en Code.gs.
+// ════════════════════════════════════════════════════════════
+function registrar() {
+  if (!hojaConfirmada) { showToast("Confirma la hoja destino primero","warn"); return; }
+
+  var a  = document.getElementById("asignador").value.trim();
+  var h  = document.getElementById("hoja").value;
+  var c  = document.getElementById("ticket").value.trim();
+  var t  = document.getElementById("titulo").value.trim();
+  var co = document.getElementById("consultor").value.trim();
+
+  if (!a || !c) { showToast("Asignador y Ticket son obligatorios","error"); return; }
+
+  var now = new Date();
+  var f   = now.toLocaleDateString();
+  var hr  = now.toLocaleTimeString();
+
+  document.getElementById("loading").style.display    = "block";
+  document.getElementById("statusText").textContent   = "Guardando...";
+
+  google.script.run
+    .withSuccessHandler(function() {
+      document.getElementById("loading").style.display  = "none";
+      document.getElementById("statusText").textContent = "OK — " + h;
+      showToast("Guardado en " + h, "success");
+      // Resetear confirmación de hoja tras registrar
+      hojaConfirmada = false;
+      setBtnRegistrar(false);
+      document.getElementById("btnConfirmHoja").classList.remove("visible");
+      document.getElementById("hojaOk").classList.remove("visible");
+    })
+    .withFailureHandler(function(e) {
+      document.getElementById("loading").style.display  = "none";
+      document.getElementById("statusText").textContent = "Error";
+      showToast(e.message, "error");
+    })
+    .registrarEnSheet({ asignador:a, hoja:h, caso:c, fecha:f, hora:hr, titulo:t, consultor:co });
+
+  // Guardar para "Copiar ultimo" (sin consultor en hojas SEGA/SOX Sega)
+  var sinConsultor = HOJAS_SIN_CONSULTOR.indexOf(h) !== -1;
+  ult = sinConsultor ? [a,c,f,hr,t].join("\t") : [a,c,f,hr,t,co].join("\t");
+
+  // Agregar al historial local
+  var reg = { asignador:a, caso:c, fecha:f, hora:hr, titulo:t, consultor:co, hoja:h };
+  guardarHistorial(reg);
+
+  var le = document.getElementById("le");
+  if (le) le.remove();
+  var tbody = document.getElementById("logBody");
+  tbody.insertBefore(crearFila(reg), tbody.firstChild);
+  while (tbody.children.length > MAX_REGISTROS) tbody.removeChild(tbody.lastChild);
+  tot++;
+  document.getElementById("cnt").textContent = Math.min(tot, MAX_REGISTROS);
+
+  guardarEstado();
+}
+
+// ════════════════════════════════════════════════════════════
+// LIMPIAR Y COPIAR
+// ════════════════════════════════════════════════════════════
+
+// Copia el último registro al portapapeles
+function copiarUltimo() {
+  if (ult) { navigator.clipboard.writeText(ult); showToast("Copiado","info"); }
+  else showToast("Nada que copiar","error");
+}
+
+function limpiarTexto() {
+  document.getElementById("texto").value = "";
+  guardarEstado();
+}
+
+// Limpia los campos del ticket (conserva asignador y hoja)
+function limpiarCampos() {
+  ["ticket","titulo","consultor","grupo"].forEach(function(id) {
+    document.getElementById(id).value = "";
+  });
+  document.getElementById("tipoBadge").style.display = "none";
+  document.getElementById("btnConfirmHoja").classList.remove("visible");
+  document.getElementById("hojaOk").classList.remove("visible");
+  hojaConfirmada = false;
+  setBtnRegistrar(false);
+  guardarEstado();
+  showToast("Limpio","info");
+}
+
+// Borra el historial visible y del localStorage
+function limpiarLog() {
+  document.getElementById("logBody").innerHTML =
+    "<tr id='le'><td colspan='7' class='le'>Sin registros aún</td></tr>";
+  tot = 0;
+  document.getElementById("cnt").textContent = "0";
+  try { localStorage.removeItem("ticketsHistorial"); } catch(e) {}
+}
+
+// ════════════════════════════════════════════════════════════
+// INICIALIZACIÓN
+// ════════════════════════════════════════════════════════════
+window.addEventListener("load", function() {
+  cargarEstado();
+  cargarHistorial();
+  // Trae la lista de hojas sin consultor desde Código.gs (fuente única).
+  google.script.run.withSuccessHandler(function(lista) {
+    HOJAS_SIN_CONSULTOR = lista || [];
+  }).getHojasSinConsultor();
+});
+</script>
+</body>
+</html>

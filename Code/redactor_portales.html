@@ -1,0 +1,988 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <meta charset="UTF-8">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+  <style>
+    /* ── Variables de color ─────────────────────────────────── */
+    :root {
+      --navy:   #07112b;
+      --accent: #2563eb;
+      --teal:   #0ea5e9;
+      --amber:  #f59e0b;
+      --red:    #dc2626;
+      --green:  #059669;
+      --muted:  #94a3b8;
+      --text:   #0f172a;
+      --border: #dde3ed;
+    }
+
+    /* ── Reset y base ───────────────────────────────────────── */
+    * { margin:0; padding:0; box-sizing:border-box; }
+    html { height:100%; }
+    body {
+      font-family:'DM Sans',sans-serif;
+      background:#0b172e;
+      color:var(--text);
+      font-size:12px;
+      display:flex;
+      flex-direction:column;
+      min-height:100%;
+      overflow-y:auto;
+    }
+
+    /* ── Header ─────────────────────────────────────────────── */
+    .hd {
+      background:linear-gradient(100deg,#04091a,#091528 55%,#0f1f3a);
+      padding:9px 18px; display:flex; align-items:center; gap:10px;
+      flex-shrink:0; border-bottom:1px solid rgba(255,255,255,.05);
+      box-shadow:0 2px 20px rgba(0,0,0,.5);
+    }
+    .hd-logo {
+      width:30px; height:30px;
+      background:linear-gradient(135deg,var(--accent),var(--teal));
+      border-radius:8px; display:flex; align-items:center; justify-content:center;
+    }
+    .hd-logo .material-icons-round { font-size:16px; color:#fff; }
+    .hd-info { flex:1; }
+    .hd-info h1 { font-size:14px; font-weight:700; color:#fff; letter-spacing:-.3px; }
+    .hd-info p  { font-size:9px; color:rgba(255,255,255,.35); margin-top:1px; }
+    .hd-pill {
+      background:rgba(37,99,235,.2); border:1px solid rgba(37,99,235,.4);
+      padding:3px 10px; border-radius:20px;
+      font-size:9px; font-weight:700; color:#93c5fd; letter-spacing:.4px;
+    }
+    .hd-close {
+      background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.1);
+      border-radius:6px; color:rgba(255,255,255,.55);
+      width:28px; height:28px;
+      display:flex; align-items:center; justify-content:center;
+      cursor:pointer; transition:all .15s;
+    }
+    .hd-close:hover { background:rgba(220,38,38,.35); color:#fff; }
+    .hd-close .material-icons-round { font-size:15px; }
+
+    /* ── Área principal con scroll ──────────────────────────── */
+    .main {
+      flex:1;
+      padding:14px 16px;
+      display:flex; flex-direction:column; gap:12px;
+    }
+    .main::-webkit-scrollbar { width:5px; }
+    .main::-webkit-scrollbar-thumb { background:rgba(255,255,255,.1); border-radius:3px; }
+
+    /* ── Cards ──────────────────────────────────────────────── */
+    .card {
+      background:#fff; border-radius:11px; padding:14px 16px;
+      border:1px solid #e2e8f0; box-shadow:0 1px 6px rgba(0,0,0,.07);
+    }
+    /* Card oscura para el bloque BMC */
+    .bmc-card {
+      background:linear-gradient(135deg,#06101f,#0e1e3a);
+      border-radius:11px; padding:14px 16px;
+      border:1px solid rgba(37,99,235,.3);
+    }
+
+    /* ── Títulos de sección ─────────────────────────────────── */
+    .sec {
+      font-size:9px; font-weight:700; color:#1e3a5f;
+      text-transform:uppercase; letter-spacing:.8px;
+      margin-bottom:10px; display:flex; align-items:center; gap:5px;
+    }
+    .sec .material-icons-round { font-size:13px; color:var(--accent); }
+    .sec-d {
+      font-size:9px; font-weight:700; color:rgba(255,255,255,.4);
+      text-transform:uppercase; letter-spacing:.8px;
+      margin-bottom:10px; display:flex; align-items:center; gap:5px;
+    }
+    .sec-d .material-icons-round { font-size:13px; color:#60a5fa; }
+
+    /* ── Etiquetas e inputs ─────────────────────────────────── */
+    label {
+      display:block; font-size:8.5px; font-weight:700;
+      color:#64748b; text-transform:uppercase; letter-spacing:.5px; margin-bottom:3px;
+    }
+    label.dk { color:rgba(255,255,255,.38); }
+
+    input, textarea, select {
+      width:100%; padding:8px 11px;
+      border:1.5px solid var(--border); border-radius:7px;
+      font-size:11.5px; font-family:'DM Sans',sans-serif;
+      color:var(--text); background:#f8fafc;
+      transition:border-color .15s, box-shadow .15s, background .15s;
+      margin-bottom:8px;
+    }
+    textarea { resize:vertical; min-height:58px; }
+    input:focus, textarea:focus, select:focus {
+      outline:none; border-color:var(--accent);
+      background:#fff; box-shadow:0 0 0 3px rgba(37,99,235,.1);
+    }
+    /* Flecha personalizada en selects */
+    select {
+      cursor:pointer; appearance:none;
+      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='%2364748b'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+      background-repeat:no-repeat; background-position:right 10px center;
+    }
+    /* Clave temporal resaltada en ámbar */
+    .field-clave input { border-color:var(--amber); background:#fffbeb; }
+    .field-clave input:focus { border-color:#d97706; box-shadow:0 0 0 3px rgba(245,158,11,.12); }
+    .clave-hint { font-size:8px; color:#b45309; margin-top:-5px; margin-bottom:8px; }
+    .campo-falta { border-color:var(--red) !important; background:#fef2f2 !important; }
+    .campo-falta:focus { border-color:var(--red) !important; box-shadow:0 0 0 3px rgba(220,38,38,.15) !important; }
+    /* Textarea de ticket con estilo de código */
+    #textoTicket {
+      background:#f0f5ff; border-color:#c7d7f5; border-style:dashed;
+      font-family:'DM Mono',monospace; font-size:10.5px; min-height:62px;
+    }
+    /* Inputs del bloque BMC (fondo oscuro) */
+    .bmc-input {
+      background:#0a1830 !important; border-color:rgba(255,255,255,.1) !important;
+      color:#e2e8f0 !important; font-size:11px !important;
+    }
+    .bmc-input:focus {
+      border-color:rgba(96,165,250,.6) !important;
+      box-shadow:0 0 0 3px rgba(37,99,235,.2) !important;
+    }
+
+    /* ── Bloque de resultado BMC ────────────────────────────── */
+    .bmc-output {
+      font-family:'DM Mono',monospace; font-size:12.5px; font-weight:500;
+      color:#bfdbfe; letter-spacing:.3px; word-break:break-word;
+      min-height:24px; padding:9px 13px;
+      background:rgba(0,0,0,.3); border-radius:7px;
+      border:1px solid rgba(37,99,235,.2);
+      margin-top:9px; line-height:1.5;
+    }
+    .bmc-empty { color:rgba(255,255,255,.22); font-style:italic; font-size:11px; }
+    .bmc-row   { display:flex; gap:7px; margin-top:9px; }
+    .bmc-btn {
+      background:rgba(37,99,235,.18); border:1px solid rgba(37,99,235,.38);
+      border-radius:6px; color:#93c5fd; padding:6px 12px;
+      font-size:10.5px; font-weight:600; font-family:'DM Sans',sans-serif;
+      cursor:pointer; display:inline-flex; align-items:center;
+      gap:4px; transition:all .15s; flex:1; justify-content:center;
+    }
+    .bmc-btn:hover { background:rgba(37,99,235,.38); color:#dbeafe; }
+    .bmc-btn .material-icons-round { font-size:13px; }
+
+    /* ── Pill del asunto en la vista previa ─────────────────── */
+    .subject-pill {
+      background:#eef2ff; border:1px solid #c7d2fe; border-radius:7px;
+      padding:7px 12px; font-size:10.5px; color:#3730a3; font-weight:600;
+      margin-bottom:10px; display:none; word-break:break-all; line-height:1.5;
+    }
+    .subject-pill span { font-weight:400; color:#4338ca; }
+
+    /* ── Vista previa del correo ────────────────────────────── */
+    .preview-box {
+      background:#fff; border:1.5px solid var(--border); border-radius:8px;
+      padding:15px 17px; font-size:11.5px; line-height:1.8;
+      color:var(--text); min-height:150px; max-height:450px; overflow-y:auto;
+    }
+    .preview-box::-webkit-scrollbar { width:4px; }
+    .preview-box::-webkit-scrollbar-thumb { background:#c1cdd9; border-radius:3px; }
+    .preview-empty { text-align:center; color:var(--muted); font-size:11px; padding:36px 0; }
+    .preview-empty .material-icons-round { font-size:36px; display:block; margin-bottom:8px; opacity:.22; }
+    .preview-table { border-collapse:collapse; margin:5px 0 13px; }
+    .preview-table td { padding:4px 20px 4px 0; vertical-align:top; }
+    .preview-table td:first-child { font-weight:700; white-space:nowrap; color:#0f2a4a; }
+
+    /* ── Botones ────────────────────────────────────────────── */
+    .btn {
+      padding:9px 16px; border:none; border-radius:7px;
+      font-size:12px; font-weight:600; font-family:'DM Sans',sans-serif;
+      cursor:pointer; display:inline-flex; align-items:center;
+      justify-content:center; gap:6px; transition:all .15s; white-space:nowrap;
+    }
+    .btn .material-icons-round { font-size:15px; }
+    .btn-gmail {
+      background:linear-gradient(135deg,#991b1b,#dc2626); color:#fff;
+      width:100%; font-size:12.5px; padding:10px 16px;
+      box-shadow:0 2px 10px rgba(185,28,28,.3);
+    }
+    .btn-gmail:hover   { box-shadow:0 4px 18px rgba(185,28,28,.45); transform:translateY(-1px); }
+    .btn-gmail:disabled { opacity:.4; cursor:not-allowed; transform:none; box-shadow:none; }
+    .btn-navy  { background:linear-gradient(135deg,#07112b,#1a3464); color:#fff; box-shadow:0 2px 8px rgba(7,17,43,.4); }
+    .btn-navy:hover  { transform:translateY(-1px); }
+    .btn-green { background:linear-gradient(135deg,#065f46,#059669); color:#fff; box-shadow:0 2px 6px rgba(5,150,105,.28); }
+    .btn-green:hover { transform:translateY(-1px); }
+    .btn-ghost     { background:#fff; color:#475569; border:1.5px solid var(--border); flex:1; }
+    .btn-ghost:hover     { background:#f1f5f9; }
+    .btn-ghost-red { background:#fff; color:var(--red); border:1.5px solid #fecaca; flex:1; }
+    .btn-ghost-red:hover { background:#fef2f2; }
+    .btn-clr { background:#f1f5f9; color:#475569; border:1.5px solid var(--border); }
+    .btn-clr:hover { background:#e2e8f0; }
+
+    /* ── Grids y layouts ────────────────────────────────────── */
+    .g2 { display:grid; grid-template-columns:1fr 1fr; gap:0 14px; }
+    .g3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:0 14px; }
+    .g4 { display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:0 14px; }
+    .gdiv { height:1px; background:#eef2f7; margin:2px 0 12px; }
+    /* Fila superior: ticket | BMC */
+    .row-top { display:grid; grid-template-columns:1fr 1.55fr; gap:12px; }
+    /* Fila central: campos | preview */
+    .row-mid { display:grid; grid-template-columns:1fr 1.8fr; gap:12px; align-items:start; }
+    .col-left { display:flex; flex-direction:column; gap:12px; }
+    .br { display:flex; gap:8px; margin-top:9px; }
+
+    /* ── Barra de estado ────────────────────────────────────── */
+    .st { display:flex; align-items:center; gap:6px; font-size:9px; color:var(--muted); margin-top:8px; }
+    .st-dot { width:6px; height:6px; border-radius:50%; background:#10b981; box-shadow:0 0 5px rgba(16,185,129,.5); }
+
+    /* ── Spinner de carga ───────────────────────────────────── */
+    .ld { display:none; text-align:center; padding:6px; }
+    .sp {
+      width:16px; height:16px;
+      border:2px solid #e2e8f0; border-top-color:var(--accent);
+      border-radius:50%; animation:spin .6s linear infinite; display:inline-block;
+    }
+    @keyframes spin { to { transform:rotate(360deg); } }
+
+    /* ── Toast de notificaciones ────────────────────────────── */
+    .toast {
+      position:fixed; bottom:10px; left:12px; right:12px;
+      padding:9px 14px; border-radius:8px; color:#fff;
+      font-size:11.5px; font-weight:500; display:none;
+      align-items:center; gap:7px; z-index:99;
+      box-shadow:0 6px 22px rgba(0,0,0,.3); animation:su .2s ease;
+    }
+    .toast.success { background:linear-gradient(135deg,#047857,#059669); }
+    .toast.error   { background:linear-gradient(135deg,#991b1b,#dc2626); }
+    .toast.info    { background:linear-gradient(135deg,#07112b,#1a3464); }
+    .toast.warn    { background:linear-gradient(135deg,#92400e,#d97706); }
+    .toast .material-icons-round { font-size:16px; }
+    @keyframes su { from { transform:translateY(10px); opacity:0; } to { transform:translateY(0); opacity:1; } }
+  </style>
+</head>
+<body>
+
+<!-- ── Header ──────────────────────────────────────────────── -->
+<div class="hd">
+  <div class="hd-logo"><span class="material-icons-round">mail</span></div>
+  <div class="hd-info">
+    <h1>Redactor de Correos Portales</h1>
+    <p>CENIT Transporte &nbsp;&middot;&nbsp; Seguridad y Accesos</p>
+  </div>
+  <span class="hd-pill">Gmail Draft</span>
+  <button class="hd-close" onclick="cerrar()">
+    <span class="material-icons-round">close</span>
+  </button>
+</div>
+
+<div class="main">
+
+  <!-- ── Fila 1: Ticket | Título BMC ──────────────────────── -->
+  <div class="row-top">
+
+    <!-- Pegar y procesar ticket -->
+    <div class="card">
+      <div class="sec"><span class="material-icons-round">content_paste</span>Pegar ticket</div>
+      <textarea id="textoTicket" placeholder="Pega aquí el texto del ticket (WO o INC) y presiona Procesar…"></textarea>
+      <div class="br" style="margin-top:0;">
+        <button class="btn btn-green" onclick="pegarTicket()" style="flex:1;">
+          <span class="material-icons-round">content_paste</span>Pegar
+        </button>
+        <button class="btn btn-navy" onclick="procesarTicket()" style="flex:1;">
+          <span class="material-icons-round">auto_fix_high</span>Procesar ticket
+        </button>
+        <button class="btn btn-clr" onclick="document.getElementById('textoTicket').value=''">
+          <span class="material-icons-round" style="font-size:14px;">close</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Generador de título BMC Remedy -->
+    <div class="bmc-card">
+      <div class="sec-d"><span class="material-icons-round">title</span>Título BMC Remedy</div>
+      <div class="g3">
+        <!-- Título: se llena desde la acción seleccionada en Datos del caso -->
+        <div>
+          <label class="dk">Acción / Título</label>
+          <div id="bmc-titulo-display" style="background:#0a1830;border:1.5px solid rgba(255,255,255,.1);
+            border-radius:7px;padding:8px 11px;font-size:11px;
+            color:rgba(255,255,255,.35);font-style:italic;
+            min-height:38px;display:flex;align-items:center;margin-bottom:8px;">
+            Se toma de la acción seleccionada
+          </div>
+        </div>
+        <!-- ID SAP del usuario -->
+        <div>
+          <label class="dk">ID / Código</label>
+          <input type="text" id="bmc-id" class="bmc-input" placeholder="76325377"
+            oninput="actualizarBMC();guardarBMC();">
+        </div>
+        <!-- Nombre o razón social del cliente -->
+        <div>
+          <label class="dk">Nombre / Razón social</label>
+          <input type="text" id="bmc-cliente" class="bmc-input" placeholder="BERMORI GRANADA…"
+            oninput="actualizarBMC();guardarBMC();">
+        </div>
+      </div>
+      <!-- Resultado generado -->
+      <div class="bmc-output" id="bmcResult">
+        <span class="bmc-empty">Completa los campos para generar el título…</span>
+      </div>
+      <div class="bmc-row">
+        <button class="bmc-btn" onclick="copiarBMC()">
+          <span class="material-icons-round">content_copy</span>Copiar título
+        </button>
+        <button class="bmc-btn" onclick="importarDesdeCaso()">
+          <span class="material-icons-round">sync</span>Importar caso activo
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── Fila 2: Campos del caso | Vista previa ───────────── -->
+  <div class="row-mid">
+
+    <div class="col-left">
+
+      <!-- Destinatarios del correo -->
+      <div class="card">
+        <div class="sec"><span class="material-icons-round">alternate_email</span>Destinatarios</div>
+        <label>Para</label>
+        <input type="email" id="para" placeholder="correo@destino.com">
+        <label>CC (separar con comas)</label>
+        <input type="text" id="cc" placeholder="portales@cenit-transporte.com" style="margin-bottom:0;">
+      </div>
+
+      <!-- Datos del caso -->
+      <div class="card">
+        <div class="sec"><span class="material-icons-round">confirmation_number</span>Datos del caso</div>
+        <div class="g2">
+          <div>
+            <label>Número de caso</label>
+            <input type="text" id="caso" placeholder="WO... / INC...">
+          </div>
+          <div>
+            <label>Cliente / Razón social</label>
+            <input type="text" id="nombreCliente" placeholder="BERMORI GRANADA VALENCIA">
+          </div>
+        </div>
+        <label>Título del caso</label>
+        <input type="text" id="titulo" placeholder="Cambio o desbloqueo de clave...">
+        <div class="gdiv"></div>
+
+        <!-- Acción realizada: también alimenta el título BMC -->
+        <label>Acción realizada</label>
+        <select id="accion" onchange="onAccionChange();guardarCaso();actualizarPreview();actualizarBMC();">
+          <option value="">— Seleccionar —</option>
+          <option value="Cambio de clave SAP Portales">Cambio de clave SAP Portales</option>
+          <option value="Desbloqueo SAP Portales">Desbloqueo SAP Portales</option>
+          <option value="Creación de usuario SAP Portales">Creación de usuario SAP Portales</option>
+          <option value="__manual__">✏ Escribir manualmente…</option>
+        </select>
+        <!-- Campo libre para acción manual (oculto por defecto) -->
+        <input type="text" id="accion-manual" placeholder="Describe la acción realizada…"
+          style="display:none;margin-top:-4px;"
+          oninput="guardarCaso();actualizarPreview();actualizarBMC();">
+
+        <div class="g4" style="margin-top:4px;">
+          <div>
+            <label>ID SAP / Código</label>
+            <input type="text" id="idSap" placeholder="901234991" style="margin-bottom:0;">
+          </div>
+          <div class="field-clave">
+            <label>⚠ Clave temporal</label>
+            <input type="text" id="claveTemporal" style="margin-bottom:0;">
+            <div class="clave-hint">Editable — se guarda automáticamente</div>
+          </div>
+          <div>
+            <label>Correo cliente</label>
+            <input type="text" id="correoCliente" placeholder="correo@cliente.com" style="margin-bottom:0;">
+          </div>
+          <div></div><!-- spacer para cuadrar la grilla -->
+        </div>
+      </div>
+
+      <!-- Botón principal y controles -->
+      <div class="card" style="background:#f0f9ff;border-color:#bae6fd;">
+        <button class="btn btn-gmail" id="btnGmail" onclick="crearBorrador()">
+          <span class="material-icons-round">send</span>Crear borrador en Gmail
+        </button>
+        <div class="ld" id="loading"><div class="sp"></div></div>
+        <div class="br">
+          <button class="btn btn-ghost" onclick="actualizarPreview()">
+            <span class="material-icons-round">refresh</span>Actualizar
+          </button>
+          <button class="btn btn-ghost-red" onclick="limpiarCaso()">
+            <span class="material-icons-round">restart_alt</span>Limpiar caso
+          </button>
+        </div>
+        <div class="st">
+          <div class="st-dot"></div>
+          <span id="statusText">Listo — procesa un ticket o completa los campos</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Vista previa del correo -->
+    <div class="card">
+      <div class="sec"><span class="material-icons-round">preview</span>Vista previa del correo</div>
+      <div class="subject-pill" id="subjectPreview">
+        <strong>Asunto:</strong>&nbsp;<span id="subjectText"></span>
+      </div>
+      <div class="preview-box" id="preview">
+        <div class="preview-empty">
+          <span class="material-icons-round">mail_outline</span>
+          Procesa un ticket o completa los campos para ver la vista previa
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Toast de notificaciones -->
+<div class="toast" id="toast">
+  <span class="material-icons-round" id="ti">check_circle</span>
+  <span id="tm"></span>
+</div>
+
+<script>
+// ════════════════════════════════════════════════════════════
+// CONSTANTES
+// ════════════════════════════════════════════════════════════
+var DEFAULT_CLAVE = "Tecnologia1234567890II42Temporal2#*";
+
+// ════════════════════════════════════════════════════════════
+// PERSISTENCIA — localStorage
+// Guarda el estado entre sesiones para no perder datos al cerrar.
+// ════════════════════════════════════════════════════════════
+function lsSet(k, v) { try { localStorage.setItem(k, v); } catch(e) {} }
+function lsGet(k)    { try { return localStorage.getItem(k) || ""; } catch(e) { return ""; } }
+
+// Guarda solo la clave temporal (persiste entre casos)
+function guardarClave() {
+  var c = gv("claveTemporal");
+  if (c) lsSet("redClave", c);
+}
+
+// Guarda todos los datos del caso actual
+function guardarCaso() {
+  lsSet("redCaso", JSON.stringify({
+    caso:        gv("caso"),
+    titulo:      gv("titulo"),
+    accionSel:   gv("accion"),
+    accionMan:   gv("accion-manual"),
+    nombreCliente: gv("nombreCliente"),
+    para:        gv("para"),
+    cc:          gv("cc"),
+    correoCliente: gv("correoCliente"),
+    idSap:       gv("idSap")
+  }));
+}
+
+// Guarda los campos del generador BMC (ID y cliente)
+function guardarBMC() {
+  lsSet("redBMC", JSON.stringify({
+    id:      gv("bmc-id"),
+    cliente: gv("bmc-cliente")
+  }));
+}
+
+// Restaura todos los datos guardados al abrir el redactor
+function cargarPersistidos() {
+  sv("claveTemporal", lsGet("redClave") || DEFAULT_CLAVE);
+
+  try {
+    var c = JSON.parse(lsGet("redCaso") || "null");
+    if (c) {
+      if (c.caso)          sv("caso",          c.caso);
+      if (c.titulo)        sv("titulo",        c.titulo);
+      if (c.accionSel) {
+        sv("accion", c.accionSel);
+        if (c.accionSel === "__manual__") {
+          document.getElementById("accion-manual").style.display = "block";
+          if (c.accionMan) sv("accion-manual", c.accionMan);
+        }
+      }
+      if (c.nombreCliente) sv("nombreCliente", c.nombreCliente);
+      if (c.para)          sv("para",          c.para);
+      if (c.cc)            sv("cc",            c.cc);
+      if (c.correoCliente) sv("correoCliente", c.correoCliente);
+      if (c.idSap)         sv("idSap",         c.idSap);
+    }
+  } catch(e) {}
+
+  try {
+    var b = JSON.parse(lsGet("redBMC") || "null");
+    if (b) {
+      if (b.id)      sv("bmc-id",      b.id);
+      if (b.cliente) sv("bmc-cliente", b.cliente);
+    }
+  } catch(e) {}
+}
+
+// ════════════════════════════════════════════════════════════
+// UTILIDADES
+// ════════════════════════════════════════════════════════════
+
+// Obtiene el valor de un campo del formulario
+function gv(id) { var e = document.getElementById(id); return e ? e.value.trim() : ""; }
+
+// Establece el valor de un campo
+function sv(id, v) { var e = document.getElementById(id); if (e) e.value = v || ""; }
+
+// Muestra una notificación temporal en la parte inferior
+function showToast(msg, tipo) {
+  var el = document.getElementById("toast");
+  document.getElementById("tm").textContent = msg;
+  document.getElementById("ti").textContent =
+    ({ success:"check_circle", error:"error", info:"info", warn:"warning" })[tipo] || "info";
+  el.className = "toast " + tipo;
+  el.style.display = "flex";
+  setTimeout(function() { el.style.display = "none"; }, 3200);
+}
+
+// Escapa HTML para insertar texto seguro en el preview
+function esc(t) { var d = document.createElement("div"); d.textContent = t || ""; return d.innerHTML; }
+
+// Corrige mojibake (UTF-8 mal interpretado) y reemplaza "contraseña" → "clave"
+function fix(t) {
+  if (!t) return "";
+  return t
+    .replace(/Ã±/g,"\u00f1").replace(/Ã©/g,"\u00e9").replace(/Ã¡/g,"\u00e1")
+    .replace(/Ã­/g,"\u00ed").replace(/Ã³/g,"\u00f3").replace(/Ãº/g,"\u00fa")
+    .replace(/contrase\u00f1a/gi,"clave").replace(/password/gi,"clave");
+}
+
+// ════════════════════════════════════════════════════════════
+// GENERADOR DE TÍTULO BMC
+// El título se toma de la acción seleccionada (en mayúsculas).
+// Formato resultado: ACCIÓN - ID - CLIENTE
+// ════════════════════════════════════════════════════════════
+
+// Devuelve el texto de la acción (resuelve el caso manual)
+function getAccionTexto() {
+  var sel = gv("accion");
+  return (sel === "__manual__") ? gv("accion-manual") : sel;
+}
+
+// Actualiza el resultado del BMC y el display de título
+function actualizarBMC() {
+  var t    = getAccionTexto().toUpperCase();
+  var id   = gv("bmc-id");
+  var cli  = gv("bmc-cliente").toUpperCase();
+  var disp = document.getElementById("bmc-titulo-display");
+  var out  = document.getElementById("bmcResult");
+
+  // Mostrar el título en el display del bloque BMC
+  if (disp) {
+    if (t) {
+      disp.textContent  = t;
+      disp.style.color  = "#bfdbfe";
+      disp.style.fontStyle = "normal";
+    } else {
+      disp.textContent  = "Se toma de la acción seleccionada";
+      disp.style.color  = "rgba(255,255,255,0.35)";
+      disp.style.fontStyle = "italic";
+    }
+  }
+
+  // Construir el título final
+  if (!t && !id && !cli) {
+    out.innerHTML = '<span class="bmc-empty">Completa los campos para generar el t\u00edtulo\u2026</span>';
+    return;
+  }
+  var partes = [];
+  if (t)   partes.push(t);
+  if (id)  partes.push(id);
+  if (cli) partes.push(cli);
+  out.textContent = partes.join(" - ");
+}
+
+// Copia el título generado al portapapeles
+function copiarBMC() {
+  var txt = document.getElementById("bmcResult").textContent.trim();
+  if (!txt || txt.indexOf("Completa") !== -1) { showToast("No hay título generado","warn"); return; }
+  navigator.clipboard.writeText(txt)
+    .then(function() { showToast("\u2713 Título copiado","success"); })
+    .catch(function() { showToast("No se pudo copiar","error"); });
+}
+
+// Importa ID y cliente desde el caso activo al bloque BMC
+function importarDesdeCaso() {
+  var id  = gv("idSap");
+  var cli = gv("nombreCliente");
+  if (!id && !cli) { showToast("Primero procesa un ticket","warn"); return; }
+  if (id)  sv("bmc-id",      id);
+  if (cli) sv("bmc-cliente", cli.toUpperCase());
+  actualizarBMC();
+  guardarBMC();
+  showToast("Datos importados desde el caso activo","info");
+}
+
+// ════════════════════════════════════════════════════════════
+// CONTROL DEL SELECT DE ACCIÓN
+// Muestra u oculta el campo manual según la opción elegida.
+// ════════════════════════════════════════════════════════════
+function onAccionChange() {
+  var sel = document.getElementById("accion").value;
+  var inp = document.getElementById("accion-manual");
+  if (sel === "__manual__") {
+    inp.style.display = "block";
+    inp.focus();
+  } else {
+    inp.style.display = "none";
+  }
+}
+
+// ════════════════════════════════════════════════════════════
+// PEGAR Y PROCESAR TICKET
+// ════════════════════════════════════════════════════════════
+
+// Lee el portapapeles y lo pega en el textarea
+function pegarTicket() {
+  navigator.clipboard.readText()
+    .then(function(text) {
+      if (!text.trim()) { showToast("Portapapeles vacío","error"); return; }
+      document.getElementById("textoTicket").value = text;
+      showToast("Texto pegado","success");
+    })
+    .catch(function() { showToast("No se pudo acceder al portapapeles","error"); });
+}
+
+// Extrae los datos relevantes del texto del ticket y rellena el formulario.
+// Detecta: número de caso (WO/INC), título, cliente, correo, ID SAP y CC.
+function procesarTicket() {
+  var texto = document.getElementById("textoTicket").value;
+  if (!texto.trim()) { showToast("Pega el texto del ticket primero","error"); return; }
+
+  var lineas   = texto.split(/\r?\n/).map(function(l) { return l.trim(); });
+  var noVacias = lineas.filter(function(l) { return l !== ""; });
+  var caso="", titulo="", nombreCliente="", correoCliente="", idSap="", cc="", para="";
+
+  // ── Número de caso WO ──────────────────────────────────────
+  var mWO = texto.match(/WO\d{10,}/);
+  if (mWO) {
+    caso = mWO[0];
+    for (var i = 0; i < lineas.length; i++) {
+      if (lineas[i].indexOf(caso) !== -1 && i + 2 < lineas.length) {
+        titulo = fix(lineas[i + 2]); break;
+      }
+    }
+  }
+
+  // ── Número de caso INC ─────────────────────────────────────
+  var mINC = texto.match(/INC\d{9,}/);
+  if (mINC) { caso = mINC[0]; if (noVacias.length >= 3) titulo = fix(noVacias[2]); }
+
+  // ── Nombre del cliente e ID SAP desde la descripción del ticket ──
+  // Cubre dos formatos:
+  //  - Cambio/desbloqueo: "...del usuario: NIT-D NOMBRE. Así mismo..."
+  //  - Creación:          "...correspondientes al usuario: NIT-D NOMBRE. Asimismo..."
+ var mEmp = texto.match(/usuario:\s*(\d{6,12}(?:-\d+)?)\s*[-]?\s*([A-ZÁÉÍÓÚÑ0-9 .,&\-]+?)\.(?=\s|$)/i);
+  if (mEmp) {
+    idSap         = idSap = mEmp[1].split("-")[0];
+    nombreCliente = mEmp[2].trim().replace(/\.$/, "");
+  }
+
+  // ── Correo del cliente ─────────────────────────────────────
+  // Fuente 1: "actualizar el correo registrado x@y" (cambio/desbloqueo)
+  var mMail = texto.match(/actualizar el correo registrado\s+([\w.\-+]+@[\w.\-]+\.[a-z]{2,})/i);
+  if (mMail) { correoCliente = mMail[1]; para = mMail[1]; }
+
+  // ── Recorrer líneas para campos restantes ──────────────────
+  for (var i = 0; i < lineas.length; i++) {
+    var l = lineas[i], lc = l.toLowerCase();
+
+    // Fallback cliente: línea siguiente a "Cliente" (si no se obtuvo de credenciales)
+    if (!nombreCliente && lc === "cliente" && i + 1 < lineas.length) {
+      var cand = lineas[i + 1];
+      if (cand.indexOf("@") === -1 && cand.length > 2) nombreCliente = cand;
+    }
+
+    // Correo inline: "Correo electrónico de contacto: x@y" (en la misma línea)
+    if (!correoCliente) {
+      var mInline = l.match(/correo electr[oó]nico de contacto:\s*([\w.\-+]+@[\w.\-]+\.[a-z]{2,})/i);
+      if (mInline) { correoCliente = mInline[1]; para = mInline[1]; }
+    }
+
+    // Correo en línea siguiente a "Correo electrónico de contacto"
+    if (!correoCliente && lc === "correo electrónico de contacto" && i + 1 < lineas.length) {
+      var vv = lineas[i + 1].trim();
+      if (vv.indexOf("@") !== -1) { correoCliente = vv; para = vv; }
+    }
+
+    // ID SAP desde campo "Codigo SAP" / "Código SAP" (si no vino de credenciales)
+    if (!idSap && (lc === "codigo sap" || lc === "código sap") && i + 1 < lineas.length) {
+      var v2 = lineas[i + 1].trim();
+      if (v2 && v2.toLowerCase() !== "nada establecido") idSap = v2;
+    }
+
+    // CC con correo de portales
+    var mCC = l.match(/portales@[\w.\-]+/i);
+    if (mCC && cc.indexOf(mCC[0]) === -1) cc = cc ? cc + ", " + mCC[0] : mCC[0];
+  }
+
+  // Fallback ID SAP: formato NNN-D en cualquier parte del texto (si no se obtuvo antes)
+  if (!idSap) {
+    var mId = texto.match(/\b(\d{9,10})-\d\b/);
+    if (mId) idSap = mId[1];
+  }
+
+  // ── DETECCIÓN EN TEXTO LIBRE (descripciones informales) ────
+  // Si los patrones estructurados no encontraron nada, se busca en
+  // todo el texto por palabras clave. Cubre correos escritos a mano
+  // del tipo "solicito cambio de clave para el usuario Juan Perez".
+  // Correo en cualquier parte del texto (evitando el de "portales@")
+  if (!correoCliente) {
+    var todosMails = texto.match(/[\w.\-+]+@[\w.\-]+\.[a-z]{2,}/gi) || [];
+    for (var mm = 0; mm < todosMails.length; mm++) {
+      if (!/^portales@/i.test(todosMails[mm])) {
+        correoCliente = todosMails[mm]; para = todosMails[mm]; break;
+      }
+    }
+  }
+  // Nombre tras la palabra "usuario" (texto libre: "...al usuario Juan Perez...")
+  if (!nombreCliente) {
+    var mU = texto.match(/usuario\s+(?:llamado\s+|al\s+se[ñn]or[a]?\s+)?([A-ZÁÉÍÓÚÑ][a-záéíóúñ]+(?:\s+[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+){1,3})/);
+    if (mU) nombreCliente = mU[1].trim();
+  }
+
+  // Rellenar formulario
+  // Nota: se escriben TODOS los campos (detectado o "" en blanco).
+  // Así no queda pegado ningún dato del ticket anterior.
+  // La clave temporal NUNCA se toca aquí (se conserva aparte).
+  sv("caso",          caso);
+  sv("titulo",        titulo);
+  sv("nombreCliente", nombreCliente);
+  sv("para",          para);
+  sv("correoCliente", correoCliente);
+  sv("idSap",         idSap);
+  sv("cc",            cc);
+
+  // Preseleccionar acción según palabras clave del título Y del cuerpo del ticket
+  var accionEl  = document.getElementById("accion");
+  var tLow      = (titulo || "").toLowerCase();
+  var textoLow  = texto.toLowerCase();
+  accionEl.value = ""; // limpiar selección anterior (por si el ticket no la trae)
+  sv("accion-manual", "");
+  if (textoLow.indexOf("generaci") !== -1 && textoLow.indexOf("credenciales de acceso correspondientes") !== -1) {
+    accionEl.value = "Creación de usuario SAP Portales";
+  } else if (tLow.indexOf("creaci") !== -1) {
+    accionEl.value = "Creación de usuario SAP Portales";
+  } else if (tLow.indexOf("inactividad") !== -1) {
+    accionEl.value = "Desbloqueo SAP Portales";
+  } else if (tLow.indexOf("clave") !== -1 || tLow.indexOf("contrase") !== -1) {
+    accionEl.value = "Cambio de clave SAP Portales";
+  }
+  onAccionChange();
+
+  // Llenar BMC automáticamente
+  sv("bmc-id",      idSap);
+  sv("bmc-cliente", nombreCliente ? nombreCliente.toUpperCase() : "");
+  actualizarBMC();
+
+  document.getElementById("textoTicket").value = "";
+  guardarCaso(); guardarBMC(); actualizarPreview();
+  showToast("Ticket procesado — verifica los campos","info");
+  document.getElementById("statusText").textContent = "Ticket cargado — verifica y crea el borrador";
+}
+
+// ════════════════════════════════════════════════════════════
+// VISTA PREVIA DEL CORREO
+// ════════════════════════════════════════════════════════════
+
+// Recoge todos los datos del formulario en un objeto
+function getDatos() {
+  return {
+    caso:          gv("caso"),
+    titulo:        gv("titulo"),
+    nombreCliente: gv("nombreCliente"),
+    para:          gv("para"),
+    cc:            gv("cc"),
+    correoCliente: gv("correoCliente"),
+    idSap:         gv("idSap"),
+    claveTemporal: gv("claveTemporal"),
+    accion:        getAccionTexto()
+  };
+}
+
+// ── Campos obligatorios para poder crear el borrador ─────────
+var CAMPOS_REQUERIDOS = ["para","caso","nombreCliente","titulo","idSap","correoCliente"];
+
+function validarCampos() {
+  var faltantes = [];
+  CAMPOS_REQUERIDOS.forEach(function(id) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    var vacio = !el.value.trim();
+    el.classList.toggle("campo-falta", vacio);
+    if (vacio) faltantes.push(id);
+  });
+
+  // Acción: viene del select, o del campo manual si se eligió "__manual__"
+  var accionSel    = document.getElementById("accion");
+  var accionMan     = document.getElementById("accion-manual");
+  var accionVacia   = !getAccionTexto().trim();
+  if (accionSel.value === "__manual__") {
+    accionSel.classList.remove("campo-falta");
+    accionMan.classList.toggle("campo-falta", accionVacia);
+  } else {
+    accionMan.classList.remove("campo-falta");
+    accionSel.classList.toggle("campo-falta", accionVacia);
+  }
+  if (accionVacia) faltantes.push("accion");
+
+  var btn = document.getElementById("btnGmail");
+  if (btn) btn.disabled = faltantes.length > 0;
+  return faltantes;
+}
+
+// Renderiza la vista previa del correo en el panel derecho
+function actualizarPreview() {
+  validarCampos();
+  var d   = getDatos();
+  var box = document.getElementById("preview");
+
+  if (!d.caso && !d.nombreCliente && !d.titulo) {
+    box.innerHTML = '<div class="preview-empty">'
+      + '<span class="material-icons-round">mail_outline</span>'
+      + 'Procesa un ticket o completa los campos para ver la vista previa</div>';
+    document.getElementById("subjectPreview").style.display = "none";
+    return;
+  }
+
+  // Asunto
+  var asunto = "Re: " + fix(d.caso || "[caso]") + " - " + fix(d.titulo || "[título]");
+  if (d.idSap) asunto += " - " + d.idSap;
+  document.getElementById("subjectText").textContent = asunto;
+  document.getElementById("subjectPreview").style.display = "block";
+
+  // Clave: en naranja si existe, en rojo si está vacía
+  var claveHtml = d.claveTemporal
+    ? esc(d.claveTemporal)
+    : "<span style='color:#dc2626;font-style:italic;'>⚠ pendiente</span>";
+
+  // Cuerpo del correo (HTML)
+  var h = "";
+  h += "<p style='margin:0 0 14px 0;'>Cordial Saludo,</p>";
+  h += "<p style='margin:0 0 14px 0;'>Estimado(a) <strong>" + esc(d.nombreCliente || "[nombre cliente]") + "</strong>,</p>";
+  h += "<p style='margin:0 0 14px 0;'>Por medio del presente correo se informa que la solicitud "
+     + "<strong>" + esc(d.caso || "[caso]") + "</strong>, referente a "
+     + "<strong>" + esc(d.titulo || "[título]") + "</strong>, "
+     + "ha sido gestionada satisfactoriamente de acuerdo con el requerimiento registrado. "
+     + "A continuación se detalla la gestión realizada:</p>";
+  h += "<p style='margin:0 0 6px 0;'><strong>Detalle de la gestión:</strong></p>";
+  h += "<p style='margin:0 0 14px 0;padding:10px 14px;background:#f0f4f8;"
+     + "border-left:3px solid #0f3460;border-radius:0 5px 5px 0;'>"
+     + esc(d.accion || "[acción realizada]") + "</p>";
+  h += "<div style='margin:0 0 20px 0;'></div>";
+  h += '<table class="preview-table">';
+  h += "<tr><td>ID / Código SAP:</td><td>" + (d.idSap ? esc(d.idSap) : "<em style='color:#94a3b8;'>—</em>") + "</td></tr>";
+  h += "<tr><td>Clave temporal:</td><td>" + claveHtml + "</td></tr>";
+  h += "<tr><td>Correo registrado:</td><td>" + (d.correoCliente ? esc(d.correoCliente) : "<em style='color:#94a3b8;'>—</em>") + "</td></tr>";
+  h += "</table>";
+  h += "<div style='background:#fffbeb;border:1px solid #fde68a;border-radius:6px;"
+     + "padding:9px 13px;margin:0 0 14px 0;font-size:11px;'>"
+     + "<strong style='color:#92400e;'>⚠ Importante:</strong> "
+     + "<span style='color:#78350f;'>Tiene <strong>24 horas</strong> para cambiar su clave temporal. "
+     + "Si no lo hace a tiempo, el acceso expirará y deberá solicitar una nueva clave desde Mati: "
+     + "<a href='https://geemidstream-dwp.onbmc.com/dwp/app/#/catalog' "
+     + "style='color:#1155cc;font-weight:600;'>Ingresar aquí</a>.<br>"
+     + "Su nueva clave debe cumplir estos requisitos: mínimo <strong>30 caracteres</strong>, "
+     + "combinar mayúsculas, minúsculas, números y símbolos, y <strong>no incluir</strong> su ID de usuario.</span></div>";
+  h += "<p style='margin:0;'>Se procede con el cierre del caso <strong>" + esc(d.caso || "[caso]") + "</strong>.</p>";
+
+  box.innerHTML = h;
+}
+
+// ════════════════════════════════════════════════════════════
+// LISTENERS — auto-guardar y actualizar preview al escribir
+// ════════════════════════════════════════════════════════════
+document.addEventListener("DOMContentLoaded", function() {
+  // Clave temporal: guarda sin actualizar todo el caso
+  document.getElementById("claveTemporal").addEventListener("input", function() {
+    guardarClave(); actualizarPreview();
+  });
+  // Campos del caso: guardan y refrescan preview
+  ["caso","titulo","nombreCliente","para","cc","correoCliente","idSap"].forEach(function(id) {
+    document.getElementById(id).addEventListener("input", function() {
+      guardarCaso(); actualizarPreview();
+    });
+  });
+  // Campo manual de acción: también actualiza BMC
+  document.getElementById("accion-manual").addEventListener("input", function() {
+    guardarCaso(); actualizarPreview(); actualizarBMC();
+  });
+});
+
+// ════════════════════════════════════════════════════════════
+// CREAR BORRADOR EN GMAIL
+// Llama a crearBorradorGmail() en Code.gs vía google.script.run
+// ════════════════════════════════════════════════════════════
+function crearBorrador() {
+  var faltantes = validarCampos();
+  if (faltantes.length > 0) {
+    showToast("Completa los campos resaltados en rojo antes de crear el borrador","error");
+    document.getElementById("statusText").textContent = "Faltan campos por completar";
+    return;
+  }
+  var d = getDatos();
+  if (!d.claveTemporal) showToast("⚠ La clave temporal está vacía","warn");
+
+  document.getElementById("loading").style.display  = "block";
+  document.getElementById("btnGmail").disabled       = true;
+  document.getElementById("statusText").textContent  = "Creando borrador en Gmail...";
+
+  google.script.run
+    .withSuccessHandler(function(res) {
+      document.getElementById("loading").style.display = "none";
+      document.getElementById("btnGmail").disabled      = false;
+      if (res.ok) {
+        showToast("\u2713 Borrador creado en Gmail","success");
+        document.getElementById("statusText").textContent = "Borrador creado: " + res.asunto;
+      } else {
+        showToast("Error: " + res.error,"error");
+        document.getElementById("statusText").textContent = "Error al crear borrador";
+      }
+    })
+    .withFailureHandler(function(e) {
+      document.getElementById("loading").style.display = "none";
+      document.getElementById("btnGmail").disabled      = false;
+      showToast(e.message,"error");
+      document.getElementById("statusText").textContent = "Error";
+    })
+    .crearBorradorGmail(d);
+}
+
+// ════════════════════════════════════════════════════════════
+// LIMPIAR Y CERRAR
+// ════════════════════════════════════════════════════════════
+
+// Limpia los campos del caso. La clave temporal se conserva.
+function limpiarCaso() {
+  ["caso","titulo","nombreCliente","para","cc","correoCliente","idSap","accion","textoTicket"]
+    .forEach(function(id) { sv(id, ""); });
+  document.getElementById("accion-manual").style.display = "none";
+  sv("accion-manual", "");
+  lsSet("redCaso", "");
+  actualizarPreview();
+  document.getElementById("statusText").textContent = "Listo para el siguiente ticket";
+  showToast("Caso limpiado — clave conservada","info");
+}
+
+// Guarda todo y cierra el panel
+function cerrar() {
+  guardarClave(); guardarCaso(); guardarBMC();
+  google.script.host.close();
+}
+
+// ════════════════════════════════════════════════════════════
+// INICIALIZACIÓN
+// ════════════════════════════════════════════════════════════
+window.addEventListener("load", function() {
+  cargarPersistidos();
+  actualizarPreview();
+  actualizarBMC();
+});
+</script>
+</body>
+</html>
