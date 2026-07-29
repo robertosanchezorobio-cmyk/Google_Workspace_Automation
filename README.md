@@ -38,7 +38,7 @@ The solution significantly reduced the time required to complete daily operation
 
 ### Knowledge Center
 
-![Knowledge Center](Images/Centro_ de_conocimiento.jpeg)
+![Knowledge Center](Images/Centro_de_conocimiento.jpeg)
 
 A centralized repository that allows users to:
 
@@ -75,7 +75,6 @@ This automation eliminates repetitive manual data entry and reduces registration
 
 ### Email Draft Generator
 
-![Email Generator](Images/Redactor_de_correos.jpeg)
 
 Automatically generates standardized Gmail drafts directly from SAP tickets.
 
